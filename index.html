@@ -30,18 +30,25 @@
 
 <main class="max-w-7xl mx-auto px-4 py-7 space-y-7">
 
+<section id="alert-box" class="hidden"></section>
+
 <section class="bg-gradient-to-r from-slate-800 to-indigo-950/60 border border-indigo-500/30 rounded-2xl p-6 shadow-xl">
 <div class="flex flex-col xl:flex-row justify-between gap-6">
-  <div>
+  <div class="flex-1">
     <div class="text-indigo-400 text-sm font-semibold uppercase tracking-wider mb-1"><i class="fa-solid fa-crosshairs mr-1"></i> Décision tactique</div>
-    <h2 id="allocation-title" class="text-3xl font-extrabold">Chargement…</h2>
-    <p id="allocation-desc" class="text-slate-300 text-sm mt-2 max-w-3xl"></p>
+    <h2 id="allocation-title" class="text-4xl font-extrabold">Chargement…</h2>
+    <div class="mt-4 h-4 rounded-full bg-slate-700 overflow-hidden flex max-w-xl">
+      <div id="alloc-bar-actions" class="h-full bg-emerald-500"></div><div id="alloc-bar-cash" class="h-full bg-slate-500"></div>
+    </div>
+    <div class="flex justify-between text-xs text-slate-400 mt-1 max-w-xl"><span id="alloc-actions-label"></span><span id="alloc-cash-label"></span></div>
+    <p id="allocation-desc" class="text-slate-300 text-sm mt-3 max-w-3xl"></p>
+    <div id="decision-change" class="mt-4 max-w-3xl"></div>
     <div id="decision-date" class="text-xs text-slate-400 mt-3"></div>
   </div>
-  <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl min-w-[300px]">
-    <div class="text-xs text-slate-400">Meilleur actif confirmé</div>
-    <div id="best-asset" class="text-2xl font-bold text-emerald-400 mt-1">—</div>
-    <div id="best-detail" class="text-xs text-slate-400 mt-1"></div>
+  <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl xl:min-w-[340px]">
+    <div class="text-xs text-slate-400 uppercase tracking-wider">Répartition de votre prochain versement</div>
+    <div id="alloc-list" class="mt-3 space-y-2"></div>
+    <div id="alloc-note" class="text-xs text-slate-500 mt-3"></div>
   </div>
 </div>
 </section>
@@ -57,7 +64,7 @@
 <div class="overflow-x-auto">
 <table class="w-full text-left text-sm">
 <thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
-<tr><th class="py-3 px-3">Canari</th><th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">12M</th><th class="py-3 px-3 text-right">13612 brut</th><th class="py-3 px-3 text-right">Lissé 5j</th><th class="py-3 px-3 text-center">État</th></tr>
+<tr><th class="py-3 px-3">Canari</th><th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">12M</th><th class="py-3 px-3 text-right">13612 brut</th><th class="py-3 px-3 text-right">Lissé 5j</th><th class="py-3 px-3 text-center">État</th><th class="py-3 px-3 text-center">Il y a 1 mois</th></tr>
 </thead>
 <tbody id="canary-body" class="divide-y divide-slate-700/60"></tbody>
 </table>
@@ -68,7 +75,7 @@
 <div class="flex flex-col lg:flex-row justify-between gap-4 mb-5">
 <div>
 <h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive</h3>
-<p class="text-xs text-slate-400 mt-1">Le score cherche une hausse réelle et récente, pas seulement une forte performance passée.</p>
+<p class="text-xs text-slate-400 mt-1">Le score cherche une hausse réelle et récente, pas seulement une forte performance passée. <span id="ref-decision-label"></span></p>
 </div>
 <div class="text-xs bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
 <b>Score /100 :</b> 35% momentum · 25% tendance · 20% accélération · 20% force relative
@@ -78,16 +85,19 @@
 <table class="w-full text-left">
 <thead class="border-b border-slate-700 text-slate-400 text-xs uppercase">
 <tr>
-<th class="py-3 px-3">Rang</th><th class="py-3 px-3">Actif</th><th class="py-3 px-3 text-right">Cours</th>
-<th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">12M</th>
-<th class="py-3 px-3 text-right">MM50</th><th class="py-3 px-3 text-right">MM200</th><th class="py-3 px-3 text-right">Momentum</th>
-<th class="py-3 px-3 text-right">Tendance</th><th class="py-3 px-3 text-right">Accél.</th><th class="py-3 px-3 text-right">Force rel.</th>
-<th class="py-3 px-3 text-right">Score</th><th class="py-3 px-3 text-center">Signal</th>
+<th class="py-3 px-3">Rang</th><th class="py-3 px-3">Actif</th><th class="py-3 px-3 text-right">Score</th>
+<th class="py-3 px-3 text-center">Signal</th><th class="py-3 px-3 text-right">% à acheter</th><th class="py-3 px-3">Action</th>
 </tr>
 </thead>
 <tbody id="asset-body" class="divide-y divide-slate-700/60"></tbody>
 </table>
 </div>
+</section>
+
+<section id="products-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-piggy-bank text-indigo-400 mr-2"></i>Produits recommandés · capitalisation · frais les plus bas</h3>
+<p class="text-xs text-slate-400 mt-1">Pour les actifs retenus dans votre versement. TER = frais annuels. Relevés juillet–octobre 2026 (émetteurs, justETF, presse spécialisée) : les sources divergent parfois de quelques centièmes — vérifiez le DIC/KID avant tout achat. Information générale, pas un conseil en investissement personnalisé.</p>
+<div id="products-body" class="grid lg:grid-cols-2 gap-4 mt-5"></div>
 </section>
 
 <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
@@ -107,14 +117,14 @@
 <b>BUY</b> = momentum positif + tendance confirmée + accélération/force relative suffisantes.
 <b>WATCH</b> = actif intéressant mais retournement encore incomplet.
 <b>EXCLU</b> = dynamique trop dégradée.
-Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous MM200.
+Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous MM200.<br><b class="text-rose-300">VENDRE</b> = l'actif était BUY à la dernière décision et ne l'est plus. <b class="text-emerald-300">NOUVEAU</b> = devenu BUY depuis la dernière décision.<br>Répartition : un seul actif par doublon (SP500 / CW8 : le mieux noté), BTC plafonné à 10 % de la part investie, le reste proportionnel au score.
 </p>
 </section>
 
 </main>
 
 <footer class="border-t border-slate-700 bg-slate-800 py-5 text-center text-xs text-slate-500">
-V3 — Données historiques Yahoo Finance · aucun ordre n'est exécuté automatiquement · décision à prendre tous les 15 jours.
+V3 — Données historiques Yahoo Finance · aucun ordre n'est exécuté automatiquement · décision à prendre tous les 15 jours · ceci n'est pas un conseil en investissement.
 </footer>
 
 <script>
@@ -259,89 +269,241 @@ async function refresh(force){
   }finally{refreshing=false;}
 }
 
-function render(records){
-  const canaryRecords=records.filter(x=>(CONFIG.canaries||[]).some(c=>c.id===x.id));
-  const offensive=records.filter(x=>(CONFIG.offensive||[]).some(c=>c.id===x.id) && x.m);
+// ───────── Paramètres de répartition (surchargeables dans assets_v3.json : "bucket", "cap") ─────────
+const DEFAULT_BUCKET={CW8:"DEV",SP500:"DEV"};
+const DEFAULT_CAP={BTC:0.10};
+const bucketOf=x=>x.bucket??DEFAULT_BUCKET[x.id]??null;
+const capOf=x=>x.cap??DEFAULT_CAP[x.id]??1;
+const isCanary=id=>(CONFIG.canaries||[]).some(c=>c.id===id);
+const isOff=id=>(CONFIG.offensive||[]).some(c=>c.id===id);
+const fdate=d=>d.toLocaleDateString("fr-FR");
+const allocLabel=a=>a===null?"n/d":`${a}% Actions / ${100-a}% Cash`;
 
-  // Canaries
-  let red=0;
+function scoreList(list){
+  const rel=list.map(o=>0.6*o.m.r6+0.4*o.m.r12), mom=list.map(o=>o.m.raw), acc=list.map(o=>o.m.acc);
+  list.forEach((o,i)=>{
+    const m=o.m;
+    m.momentumScore=percentile(mom,m.raw); m.relativeScore=percentile(rel,rel[i]); m.accScore=percentile(acc,m.acc);
+    m.final=clamp(0.35*m.momentumScore+0.25*m.trendRaw+0.20*m.accScore+0.20*m.relativeScore);
+    if(m.last<m.mm200||m.mm50<m.mm200) o.signal="WATCH";
+    else if(m.r1<0&&m.r3<0) o.signal="EXCLU";
+    else if(m.confirmed&&m.final>=60) o.signal="BUY";
+    else o.signal="WATCH";
+  });
+  return list.sort((a,b)=>b.m.final-a.m.final);
+}
+
+// État complet de la stratégie à une date donnée (cutoff = timestamp en secondes, null = aujourd'hui)
+function snapshot(records,cutoff){
+  const cut=s=>cutoff?s.filter(d=>d.t<=cutoff):s;
+  const canaries=[];
+  for(const x of records.filter(r=>isCanary(r.id)&&r.series)){
+    const s=cut(x.series); if(s.length<260) continue;
+    const c=canaryScore(s); canaries.push({x,c,state:c.smooth>=0?"VERT":"ROUGE"});
+  }
+  const red=canaries.filter(z=>z.state==="ROUGE").length;
+  const list=[];
+  for(const x of records.filter(r=>isOff(r.id)&&r.series)){
+    const s=cut(x.series); if(s.length<260) continue;
+    list.push({x,m:metrics(s)});
+  }
+  const off=scoreList(list);
+  const actions=canaries.length?(red===0?100:red===1?50:0):null;
+  return {red,canaries,off,actions};
+}
+
+function prevDecision(){
+  const step=CONFIG.decisionIntervalDays||15;
+  const today=new Date(); today.setHours(0,0,0,0);
+  let d=new Date(CONFIG.decisionAnchor+"T00:00:00");
+  if(d>=today){ while(d>=today) d.setDate(d.getDate()-step); return d; }
+  for(;;){ const n=new Date(d); n.setDate(n.getDate()+step); if(n>=today) return d; d=n; }
+}
+
+// Répartition du versement : 1 actif par doublon, plafonds, reste proportionnel au score
+function allocate(cur){
+  const exposure=(cur.actions??0)/100;
+  const pct={}, dropped=[];
+  const seen={}, kept=[];
+  for(const o of cur.off.filter(o=>o.signal==="BUY")){
+    const b=bucketOf(o.x);
+    if(b){ if(seen[b]){ dropped.push({o,by:seen[b]}); continue; } seen[b]=o; }
+    kept.push(o);
+  }
+  const w=new Map(); let free=kept.slice(), remaining=1;
+  while(free.length){
+    const sum=free.reduce((a,o)=>a+o.m.final,0);
+    const over=free.filter(o=>remaining*o.m.final/sum>capOf(o.x)+1e-9);
+    if(!over.length){ free.forEach(o=>w.set(o.x.id,remaining*o.m.final/sum)); remaining=0; free=[]; break; }
+    over.forEach(o=>{ w.set(o.x.id,capOf(o.x)); remaining-=capOf(o.x); });
+    free=free.filter(o=>!over.includes(o));
+  }
+  // arrondi à l'entier le plus proche, total = 100 avec le cash
+  const items=kept.map(o=>({id:o.x.id,v:100*exposure*(w.get(o.x.id)||0)}));
+  const cashRaw=100-items.reduce((a,i)=>a+i.v,0);
+  const all=[...items,{id:"__cash",v:cashRaw}];
+  all.forEach(i=>i.f=Math.floor(i.v));
+  let left=100-all.reduce((a,i)=>a+i.f,0);
+  [...all].sort((a,b)=>(b.v-b.f)-(a.v-a.f)).slice(0,left).forEach(i=>i.f++);
+  all.forEach(i=>{ if(i.id!=="__cash") pct[i.id]=i.f; });
+  return {pct,cash:all.find(i=>i.id==="__cash").f,dropped,kept,exposure};
+}
+
+const PRODUCTS={
+  SP500:{title:"S&P 500",items:[
+    {name:"SPDR S&P 500 UCITS ETF Acc (SPYL)",isin:"IE000XZSV718",ter:"0,03 %",env:"CTO / AV",tag:"votre produit actuel · le moins cher"},
+    {name:"Amundi PEA S&P 500 UCITS ETF Acc (PSP5)",isin:"FR0011871128",ter:"0,15 %",env:"PEA"},
+    {name:"iShares S&P 500 Swap PEA UCITS ETF Acc (SPEA)",isin:null,ter:"≈ 0,05–0,10 %",env:"PEA",note:"récent (mai 2025), TER variable selon les sources"}]},
+  CW8:{title:"MSCI World",note:"CW8 actuel : 0,38 % — les alternatives ci-dessous coûtent 2 à 3 fois moins.",items:[
+    {name:"Amundi PEA Monde MSCI World UCITS ETF Acc (DCAM)",isin:"FR001400U5Q4",ter:"0,20 %",env:"PEA",tag:"meilleur choix PEA"},
+    {name:"iShares MSCI World Swap PEA UCITS ETF Acc (WPEA)",isin:"IE0002XZSHO1",ter:"0,20 %",env:"PEA"},
+    {name:"SPDR MSCI World UCITS ETF Acc (SPPW)",isin:"IE00BFY0GT14",ter:"0,12 %",env:"CTO / AV",tag:"moins cher hors PEA"}]},
+  PAASI:{title:"Asie émergente",note:"Indices différents : PAASI suit un indice ESG « screened ».",items:[
+    {name:"Amundi PEA Asie Émergente Screened UCITS ETF Acc (PAASI)",isin:"FR0013412012",ter:"0,30 %",env:"PEA",tag:"votre produit actuel · le moins cher en PEA"},
+    {name:"iShares MSCI EM Asia UCITS ETF Acc",isin:"IE00B5L8K969",ter:"0,20 %",env:"CTO / AV",tag:"moins cher hors PEA"},
+    {name:"Amundi MSCI Em Asia UCITS ETF Acc (AASI)",isin:"LU1681044480",ter:"0,20 %",env:"CTO / AV"}]},
+  COMO:{title:"Matières premières",items:[
+    {name:"Amundi Bloomberg Equal-weight Commodity ex-Agriculture UCITS ETF Acc (COMO)",isin:"LU1829218749",ter:"0,30 %",env:"CTO / AV",tag:"votre produit actuel · déjà le moins cher"}],
+    note:"Comparables relevés : 0,39 % (BNP Easy Energy & Metals) et 0,46 % (iShares Diversified Commodity)."},
+  BTC:{title:"Bitcoin",note:"Le bitcoin ne verse aucun revenu : la notion de capitalisation ne s'applique pas. ETP physiques, hors PEA. Évitez les ETP à 1–2 % (21Shares ABTC 1,49 %, VanEck 1,00 %, Bitwise 2,00 %).",items:[
+    {name:"WisdomTree Physical Bitcoin (BTCW)",isin:"GB00BJYDH287",ter:"≈ 0,15 %",env:"CTO"},
+    {name:"iShares Bitcoin ETP (IB1T)",isin:"XS2940466316",ter:"0,15 % jusqu'au 31/12/2026, puis 0,25 %",env:"CTO"},
+    {name:"21Shares Bitcoin Core ETP (CBTC)",isin:"CH1199067674",ter:"≈ 0,10–0,21 %",env:"CTO"}]},
+  GOLD:{title:"Or",note:"ETC adossés à de l'or physique, sans dividende.",items:[
+    {name:"Xtrackers IE Physical Gold ETC",isin:"DE000A2T0VU5",ter:"0,11 %",env:"CTO / AV",tag:"le moins cher relevé"},
+    {name:"iShares Physical Gold ETC (SGLN)",isin:"IE00B4ND3602",ter:"0,12 %",env:"CTO / AV"},
+    {name:"Amundi Physical Gold ETC (GOLD)",isin:"FR0013416716",ter:"0,12 %",env:"CTO / AV",note:"cotation Paris"}]}
+};
+const justetfLink=isin=>`https://www.justetf.com/fr/etf-profile.html?isin=${isin}`;
+
+function renderProducts(alloc){
+  const ids=alloc.kept.map(o=>o.x.id);
+  const box=$("products-body"); box.innerHTML="";
+  if(!ids.length){ box.innerHTML='<div class="text-sm text-slate-400">Aucun actif à acheter pour le moment.</div>'; return; }
+  for(const id of ids){
+    const o=alloc.kept.find(k=>k.x.id===id), P=PRODUCTS[id];
+    const head=`<div class="flex justify-between items-baseline"><div class="font-bold text-indigo-300">${id} <span class="text-slate-400 font-normal">· ${P?P.title:o.x.name}</span></div><div class="text-xs text-emerald-400 font-bold">${alloc.pct[id]} % du versement</div></div>`;
+    let body="";
+    if(P){
+      body=P.items.map(it=>`<div class="mt-2 p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/60">
+        <div class="text-sm font-semibold">${it.isin?`<a class="hover:underline" target="_blank" rel="noopener" href="${justetfLink(it.isin)}">${it.name}</a>`:it.name}</div>
+        <div class="text-xs text-slate-400 mt-0.5">${it.isin?`<span class="font-mono">${it.isin}</span> · `:""}<span class="text-emerald-300 font-semibold">TER ${it.ter}</span> · ${it.env}${it.tag?` · <span class="text-amber-300">${it.tag}</span>`:""}${it.note?` · ${it.note}`:""}</div></div>`).join("")
+        +(P.note?`<div class="text-xs text-slate-500 mt-2">${P.note}</div>`:"");
+    }else{
+      body=`<div class="mt-2 text-xs text-slate-400">Pas de produit vérifié pour cet actif. Cherchez un équivalent UCITS à capitalisation sur <a class="text-indigo-300 hover:underline" target="_blank" rel="noopener" href="https://www.justetf.com/fr/search.html?search=ETFS&query=${encodeURIComponent(o.x.name.split("–")[0].trim())}">justETF</a> (tri par TER).</div>`;
+    }
+    box.innerHTML+=`<div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">${head}${body}</div>`;
+  }
+}
+
+function render(records){
+  const cur=snapshot(records,null);
+  const nowSec=Date.now()/1000;
+  const ref1m=snapshot(records,nowSec-30*86400);
+  const dd=prevDecision();
+  const refDec=snapshot(records,dd.getTime()/1000+86399);
+  const alloc=allocate(cur);
+
+  // ── Canaris
   $("canary-body").innerHTML="";
-  for(const x of canaryRecords){
-    if(!x.m){
-      $("canary-body").innerHTML+=`<tr><td class="py-3 px-3 font-semibold">${x.name}</td><td colspan="7" class="py-3 px-3 text-rose-400">${x.error}</td></tr>`;
+  for(const x of records.filter(r=>isCanary(r.id))){
+    if(!x.series){
+      $("canary-body").innerHTML+=`<tr><td class="py-3 px-3 font-semibold">${x.name}</td><td colspan="8" class="py-3 px-3 text-rose-400">${x.error}</td></tr>`;
       continue;
     }
-    const c=canaryScore(x.series), state=c.smooth>=0?"VERT":"ROUGE"; if(state==="ROUGE")red++;
+    const z=cur.canaries.find(k=>k.x.id===x.id); if(!z) continue;
+    const c=z.c, prev=ref1m.canaries.find(k=>k.x.id===x.id);
+    const chg=prev&&prev.state!==z.state;
     $("canary-body").innerHTML+=`<tr>
       <td class="py-3 px-3 font-semibold">${x.name}<span class="text-slate-500 ml-1">${x.ticker}</span></td>
       <td class="py-3 px-3 text-right">${fmt(c.r1)}</td><td class="py-3 px-3 text-right">${fmt(c.r3)}</td>
       <td class="py-3 px-3 text-right">${fmt(c.r6)}</td><td class="py-3 px-3 text-right">${fmt(c.r12)}</td>
       <td class="py-3 px-3 text-right font-semibold">${c.raw.toFixed(1)}</td>
       <td class="py-3 px-3 text-right font-bold ${c.smooth>=0?'text-emerald-400':'text-rose-400'}">${c.smooth>=0?'+':''}${c.smooth.toFixed(1)}</td>
-      <td class="py-3 px-3 text-center font-bold ${c.smooth>=0?'text-emerald-400':'text-rose-400'}">${state}</td>
+      <td class="py-3 px-3 text-center font-bold ${z.state==="VERT"?'text-emerald-400':'text-rose-400'}">${z.state}</td>
+      <td class="py-3 px-3 text-center text-xs ${chg?'text-rose-400 font-extrabold':'text-slate-400'}">${prev?`${prev.state}${chg?` → ${z.state} ⚠`:""}`:"n/d"}</td>
     </tr>`;
   }
-  $("canary-summary").innerHTML=`<span class="text-emerald-400">${canaryRecords.length-red} vert(s)</span> · <span class="text-rose-400">${red} rouge(s)</span>`;
+  $("canary-summary").innerHTML=`<span class="text-emerald-400">${cur.canaries.length-cur.red} vert(s)</span> · <span class="text-rose-400">${cur.red} rouge(s)</span>`;
 
-  const allocation=red===0?"100% Actions / 0% Cash":red===1?"50% Actions / 50% Cash":"0% Actions / 100% Cash";
-  $("allocation-title").textContent=allocation;
-  $("allocation-desc").textContent=red===0?"Les deux canaris sont positifs. La rotation offensive est autorisée."
-    :red===1?"Un canari est négatif. Exposition offensive réduite de moitié."
-    :"Les deux canaris sont négatifs. Pas d'achat offensif.";
-  const next=nextDecision();
-  $("decision-date").textContent=`Prochaine décision théorique : ${next.toLocaleDateString("fr-FR")}`;
-
-  // Cross-sectional relative strength
-  const rel=offensive.map(x=>0.6*x.m.r6+0.4*x.m.r12);
-  const mom=offensive.map(x=>x.m.raw);
-  const acc=offensive.map(x=>x.m.acc);
-
-  for(const x of offensive){
-    x.m.momentumScore=percentile(mom,x.m.raw);
-    x.m.relativeScore=percentile(rel,0.6*x.m.r6+0.4*x.m.r12);
-    x.m.accScore=percentile(acc,x.m.acc);
-    x.m.final=clamp(
-      0.35*x.m.momentumScore +
-      0.25*x.m.trendRaw +
-      0.20*x.m.accScore +
-      0.20*x.m.relativeScore
-    );
-    if(x.m.last<x.m.mm200 || x.m.mm50<x.m.mm200) x.signal="WATCH";
-    else if(x.m.r1<0 && x.m.r3<0) x.signal="EXCLU";
-    else if(x.m.confirmed && x.m.final>=60) x.signal="BUY";
-    else x.signal="WATCH";
+  // ── Décision tactique
+  const a=cur.actions;
+  const tone=a===100?"text-emerald-400":a===50?"text-amber-400":"text-rose-400";
+  const bar=a===100?"bg-emerald-500":a===50?"bg-amber-500":"bg-rose-500";
+  $("allocation-title").innerHTML=`<span class="${tone}">${allocLabel(a)}</span>`;
+  $("alloc-bar-actions").className=`h-full ${bar}`;
+  $("alloc-bar-actions").style.width=(a??0)+"%"; $("alloc-bar-cash").style.width=(100-(a??0))+"%";
+  $("alloc-actions-label").textContent=`Actions ${a??0} %`; $("alloc-cash-label").textContent=`Cash ${100-(a??0)} %`;
+  $("allocation-desc").textContent=cur.red===0?"Les deux canaris sont positifs. La rotation offensive est autorisée."
+    :cur.red===1?"Un canari est négatif. Exposition offensive réduite de moitié."
+    :"Les deux canaris sont négatifs. Pas d'achat offensif : tout reste en cash.";
+  const was=ref1m.actions;
+  if(was!==null&&a!==null&&was!==a){
+    const dir=a<was?"Exposition RÉDUITE : le cash augmente, allégez les positions offensives en conséquence.":"Exposition AUGMENTÉE : le cash diminue, la rotation offensive reprend.";
+    $("decision-change").innerHTML=`<div class="border-2 border-rose-500 bg-rose-500/15 rounded-xl px-4 py-3">
+      <div class="text-rose-300 font-extrabold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>CHANGEMENT DE DÉCISION depuis 1 mois</div>
+      <div class="text-rose-200 text-sm mt-1"><span class="line-through opacity-70">${allocLabel(was)}</span> → <b>${allocLabel(a)}</b></div>
+      <div class="text-rose-200/90 text-xs mt-1">${dir}</div></div>`;
+  }else{
+    $("decision-change").innerHTML=`<div class="text-xs text-slate-400"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>Inchangée depuis 1 mois (${allocLabel(was)}).</div>`;
   }
-  offensive.sort((a,b)=>b.m.final-a.m.final);
+  $("decision-date").textContent=`Décision précédente : ${fdate(dd)} · Prochaine décision théorique : ${fdate(nextDecision())}`;
+
+  // ── Répartition du versement
+  let list="";
+  for(const o of cur.off.filter(o=>alloc.pct[o.x.id]>0)){
+    list+=`<div class="flex justify-between items-center"><span class="font-mono font-bold text-indigo-300">${o.x.id}</span><span class="text-lg font-extrabold text-emerald-400">${alloc.pct[o.x.id]} %</span></div>`;
+  }
+  list+=`<div class="flex justify-between items-center border-t border-slate-700 pt-2"><span class="font-mono font-bold text-slate-300">CASH</span><span class="text-lg font-extrabold text-slate-300">${alloc.cash} %</span></div>`;
+  $("alloc-list").innerHTML=list;
+  const notes=[];
+  if(alloc.exposure>0){
+    alloc.dropped.forEach(d=>notes.push(`${d.o.x.id} non retenu (doublon avec ${d.by.x.id})`));
+    alloc.kept.forEach(o=>{ if(capOf(o.x)<1 && Math.abs((alloc.pct[o.x.id]||0)-100*alloc.exposure*capOf(o.x))<1.01) notes.push(`${o.x.id} plafonné à ${Math.round(capOf(o.x)*100)} % de la part investie`); });
+  }else notes.push("Aucun achat offensif tant qu'un canari au moins n'est pas repassé au vert.");
+  $("alloc-note").textContent=notes.join(" · ");
+
+  // ── Tableau de rotation
+  const sells=[], newBuys=[];
+  $("ref-decision-label").textContent=`Changements comparés à la décision du ${fdate(dd)}.`;
   $("asset-body").innerHTML="";
-  offensive.forEach((x,i)=>{
-    const m=x.m;
-    const sc=x.signal==="BUY"?"text-emerald-400 bg-emerald-500/10 border-emerald-500/30":x.signal==="WATCH"?"text-amber-400 bg-amber-500/10 border-amber-500/30":"text-rose-400 bg-rose-500/10 border-rose-500/30";
-    $("asset-body").innerHTML+=`<tr class="${x.signal==="BUY"?"bg-emerald-950/20":""}">
+  cur.off.forEach((o,i)=>{
+    const refSig=refDec.off.find(r=>r.x.id===o.x.id)?.signal;
+    const sell=refSig==="BUY"&&o.signal!=="BUY";
+    const fresh=refSig&&refSig!=="BUY"&&o.signal==="BUY";
+    const p=alloc.pct[o.x.id], dup=alloc.dropped.find(d=>d.o.x.id===o.x.id);
+    if(sell) sells.push({o,refSig}); if(fresh&&p>0) newBuys.push(o);
+    const sc=o.signal==="BUY"?"text-emerald-400 bg-emerald-500/10 border-emerald-500/30":o.signal==="WATCH"?"text-amber-400 bg-amber-500/10 border-amber-500/30":"text-rose-400 bg-rose-500/10 border-rose-500/30";
+    let action="<span class='text-slate-500'>—</span>";
+    if(sell) action=`<div class="inline-block bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-lg animate-pulse">🔴 VENDRE</div><div class="text-xs text-rose-300 mt-1">Signal changé : ${refSig} → ${o.signal}</div>`;
+    else if(dup) action=`<span class="text-xs text-slate-400">Doublon : on garde ${dup.by.x.id}</span>`;
+    else if(p>0) action=`<span class="text-emerald-300 font-bold">Acheter</span>${fresh?` <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-2 py-0.5 rounded ml-1">NOUVEAU</span>`:""}`;
+    else if(o.signal==="BUY") action=`<span class="text-xs text-slate-400">BUY, mais exposition à 0 %</span>`;
+    $("asset-body").innerHTML+=`<tr class="${sell?"bg-rose-950/40":o.signal==="BUY"?"bg-emerald-950/20":""}">
       <td class="py-3 px-3 font-bold">#${i+1}</td>
-      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${x.id}</div><div class="text-xs text-slate-500">${x.name}</div></td>
-      <td class="py-3 px-3 text-right">${m.last.toLocaleString("fr-FR",{maximumFractionDigits:2})}</td>
-      <td class="py-3 px-3 text-right ${m.r1>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r1)}</td>
-      <td class="py-3 px-3 text-right ${m.r3>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r3)}</td>
-      <td class="py-3 px-3 text-right ${m.r6>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r6)}</td>
-      <td class="py-3 px-3 text-right ${m.r12>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r12)}</td>
-      <td class="py-3 px-3 text-right">${m.mm50.toFixed(2)}</td>
-      <td class="py-3 px-3 text-right">${m.mm200.toFixed(2)}</td>
-      <td class="py-3 px-3 text-right">${m.momentumScore.toFixed(0)}</td>
-      <td class="py-3 px-3 text-right">${m.trendRaw.toFixed(0)}</td>
-      <td class="py-3 px-3 text-right">${m.accScore.toFixed(0)}</td>
-      <td class="py-3 px-3 text-right">${m.relativeScore.toFixed(0)}</td>
-      <td class="py-3 px-3 text-right font-extrabold">${m.final.toFixed(1)}</td>
-      <td class="py-3 px-3 text-center"><span class="border px-2.5 py-1 rounded-full text-xs font-bold ${sc}">${x.signal}</span></td>
-    </tr>`;
+      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}</div><div class="text-xs text-slate-500">${o.x.name}</div></td>
+      <td class="py-3 px-3 text-right font-extrabold text-lg">${o.m.final.toFixed(1)}</td>
+      <td class="py-3 px-3 text-center"><span class="border px-2.5 py-1 rounded-full text-xs font-bold ${sc}">${o.signal}</span>${refSig&&refSig!==o.signal?`<div class="text-[11px] mt-1 text-rose-300">était ${refSig}</div>`:""}</td>
+      <td class="py-3 px-3 text-right text-xl font-extrabold ${p>0?"text-emerald-400":"text-slate-600"}">${p>0?p+" %":"—"}</td>
+      <td class="py-3 px-3">${action}</td></tr>`;
   });
 
-  const best=offensive.find(x=>x.signal==="BUY");
-  $("best-asset").textContent=best?`${best.id} — ${best.name}`:"Aucun BUY";
-  $("best-detail").textContent=best?`Score ${best.m.final.toFixed(1)}/100 · 1M ${fmt(best.m.r1)} · cours ${best.m.last.toFixed(2)}`:"Aucun actif ne réunit les conditions de confirmation.";
+  // ── Bandeau d'alerte
+  const box=$("alert-box");
+  if(sells.length||newBuys.length){
+    box.className="";
+    box.innerHTML=`<div class="border-2 border-rose-500 bg-rose-950/50 rounded-2xl p-5">
+      ${sells.length?`<div class="text-rose-300 font-extrabold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i>SIGNAL CHANGÉ — À VENDRE : ${sells.map(s=>`<span class="font-mono">${s.o.x.id}</span> (${s.refSig} → ${s.o.signal})`).join(", ")}</div>`:""}
+      ${newBuys.length?`<div class="text-emerald-300 font-bold mt-1">Nouveau signal BUY : ${newBuys.map(o=>o.x.id).join(", ")}</div>`:""}
+      <div class="text-xs text-slate-400 mt-1">Comparaison avec la décision du ${fdate(dd)}.</div></div>`;
+  }else{ box.className="hidden"; box.innerHTML=""; }
 
-  $("above200").textContent=`${offensive.filter(x=>x.m.last>x.m.mm200).length}/${offensive.length}`;
-  $("goldencross").textContent=`${offensive.filter(x=>x.m.mm50>x.m.mm200).length}/${offensive.length}`;
-  $("accelerating").textContent=`${offensive.filter(x=>x.m.acc>0).length}/${offensive.length}`;
+  // ── Produits + position technique
+  renderProducts(alloc);
+  const off=cur.off;
+  $("above200").textContent=`${off.filter(x=>x.m.last>x.m.mm200).length}/${off.length}`;
+  $("goldencross").textContent=`${off.filter(x=>x.m.mm50>x.m.mm200).length}/${off.length}`;
+  $("accelerating").textContent=`${off.filter(x=>x.m.acc>0).length}/${off.length}`;
 }
 
 function nextDecision(){

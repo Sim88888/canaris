@@ -26,13 +26,15 @@
       "id": "CW8",
       "ticker": "CW8.PA",
       "name": "MSCI World – Amundi CW8",
-      "currency": "EUR"
+      "currency": "EUR",
+      "bucket": "DEV"
     },
     {
       "id": "SP500",
       "ticker": "SPYL.DE",
       "name": "S&P 500 – SPDR SPYL",
-      "currency": "EUR"
+      "currency": "EUR",
+      "bucket": "DEV"
     },
     {
       "id": "PAASI",
@@ -60,7 +62,8 @@
       "id": "BTC",
       "ticker": "BTC-EUR",
       "name": "Bitcoin EUR",
-      "currency": "EUR"
+      "currency": "EUR",
+      "cap": 0.1
     },
     {
       "id": "IEUS",

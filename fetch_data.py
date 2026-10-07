@@ -49,8 +49,10 @@ def main():
     cfg = json.load(open(os.path.join(HERE, "assets_v3.json"), encoding="utf-8"))
     alts = {a["ticker"]: a.get("alt", []) for a in cfg["canaries"] + cfg["offensive"]}
     tickers = [a["ticker"] for a in cfg["canaries"] + cfg["offensive"]] + [FX]
-    try: data = json.load(open(os.path.join(HERE, "data.json"), encoding="utf-8")).get("data", {})
-    except Exception: data = {}
+    try: prev = json.load(open(os.path.join(HERE, "data.json"), encoding="utf-8"))
+    except Exception: prev = {}
+    data = prev.get("data", {})
+    config_changed = prev.get("config") != cfg
     data = {t: v for t, v in data.items() if t in tickers}
     now = time.time()
     todo = [t for t in tickers if "series" not in data.get(t, {}) or now - data[t].get("ts", 0) > MAX_AGE]
@@ -81,7 +83,7 @@ def main():
         time.sleep(random.uniform(1.5, 3.5))
     have = sum(1 for v in data.values() if "series" in v)
     print("%d/%d tickers disponibles (%d mis à jour)" % (have, len(tickers), got))
-    if got:
+    if got or (config_changed and have):
         last = max(v.get("ts", 0) for v in data.values())
         out = {"updated": datetime.datetime.fromtimestamp(last, datetime.timezone.utc).isoformat(timespec="seconds"),
                "config": cfg, "data": data}
