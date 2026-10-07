@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stratégie Canaris V3 – Données automatiques</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen">
+
+<header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
+<div class="max-w-7xl mx-auto flex flex-col xl:flex-row justify-between items-center gap-4">
+  <div class="flex items-center gap-3">
+    <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg"><i class="fa-solid fa-shield-halved text-xl"></i></div>
+    <div>
+      <h1 class="text-xl font-bold">Stratégie Canaris <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/30 ml-2">V3 · Décision 15j</span></h1>
+      <p class="text-xs text-slate-400">Données automatiques · tendance · momentum · accélération · force relative</p>
+    </div>
+  </div>
+  <div class="flex flex-wrap justify-center items-center gap-2 text-xs">
+    <button id="refreshBtn" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg font-semibold"><i class="fa-solid fa-rotate mr-1"></i> Actualiser</button>
+    <div class="bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-700">
+      <span class="text-slate-400">Dernière mise à jour :</span> <span id="last-update">—</span>
+    </div>
+  </div>
+</div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-7 space-y-7">
+
+<section class="bg-gradient-to-r from-slate-800 to-indigo-950/60 border border-indigo-500/30 rounded-2xl p-6 shadow-xl">
+<div class="flex flex-col xl:flex-row justify-between gap-6">
+  <div>
+    <div class="text-indigo-400 text-sm font-semibold uppercase tracking-wider mb-1"><i class="fa-solid fa-crosshairs mr-1"></i> Décision tactique</div>
+    <h2 id="allocation-title" class="text-3xl font-extrabold">Chargement…</h2>
+    <p id="allocation-desc" class="text-slate-300 text-sm mt-2 max-w-3xl"></p>
+    <div id="decision-date" class="text-xs text-slate-400 mt-3"></div>
+  </div>
+  <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl min-w-[300px]">
+    <div class="text-xs text-slate-400">Meilleur actif confirmé</div>
+    <div id="best-asset" class="text-2xl font-bold text-emerald-400 mt-1">—</div>
+    <div id="best-detail" class="text-xs text-slate-400 mt-1"></div>
+  </div>
+</div>
+</section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<div class="flex flex-col md:flex-row justify-between gap-3 mb-4">
+  <div>
+    <h3 class="text-lg font-bold"><i class="fa-solid fa-kiwi-bird text-indigo-400 mr-2"></i>État des 2 canaris</h3>
+    <p class="text-xs text-slate-400 mt-1">Score 13612 = 12×1M + 4×3M + 2×6M + 1×12M, lissé sur 5 séances. Seul le signe détermine Vert/Rouge.</p>
+  </div>
+  <div id="canary-summary" class="text-sm"></div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
+<tr><th class="py-3 px-3">Canari</th><th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">12M</th><th class="py-3 px-3 text-right">13612 brut</th><th class="py-3 px-3 text-right">Lissé 5j</th><th class="py-3 px-3 text-center">État</th></tr>
+</thead>
+<tbody id="canary-body" class="divide-y divide-slate-700/60"></tbody>
+</table>
+</div>
+</section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<div class="flex flex-col lg:flex-row justify-between gap-4 mb-5">
+<div>
+<h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive</h3>
+<p class="text-xs text-slate-400 mt-1">Le score cherche une hausse réelle et récente, pas seulement une forte performance passée.</p>
+</div>
+<div class="text-xs bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
+<b>Score /100 :</b> 35% momentum · 25% tendance · 20% accélération · 20% force relative
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="border-b border-slate-700 text-slate-400 text-xs uppercase">
+<tr>
+<th class="py-3 px-3">Rang</th><th class="py-3 px-3">Actif</th><th class="py-3 px-3 text-right">Cours</th>
+<th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">12M</th>
+<th class="py-3 px-3 text-right">MM50</th><th class="py-3 px-3 text-right">MM200</th><th class="py-3 px-3 text-right">Momentum</th>
+<th class="py-3 px-3 text-right">Tendance</th><th class="py-3 px-3 text-right">Accél.</th><th class="py-3 px-3 text-right">Force rel.</th>
+<th class="py-3 px-3 text-right">Score</th><th class="py-3 px-3 text-center">Signal</th>
+</tr>
+</thead>
+<tbody id="asset-body" class="divide-y divide-slate-700/60"></tbody>
+</table>
+</div>
+</section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-chart-line text-indigo-400 mr-2"></i>Position technique</h3>
+<p class="text-xs text-slate-400 mt-1">Cours normalisé en EUR pour les actifs cotés en USD. La comparaison relative est ainsi plus cohérente pour un investisseur en euros.</p>
+<div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5">
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Au-dessus MM200</div><div id="above200" class="text-2xl font-bold">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">MM50 > MM200</div><div id="goldencross" class="text-2xl font-bold">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Accélération positive</div><div id="accelerating" class="text-2xl font-bold">—</div></div>
+<div class="bg-slate-900/60 rounded-xl p-4"><div class="text-xs text-slate-400">Données disponibles</div><div id="data-status" class="text-2xl font-bold">—</div></div>
+</div>
+</section>
+
+<section class="bg-amber-950/20 border border-amber-500/30 rounded-2xl p-5">
+<h3 class="font-bold text-amber-300"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Lecture du signal</h3>
+<p class="text-sm text-slate-300 mt-2">
+<b>BUY</b> = momentum positif + tendance confirmée + accélération/force relative suffisantes.
+<b>WATCH</b> = actif intéressant mais retournement encore incomplet.
+<b>EXCLU</b> = dynamique trop dégradée.
+Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous MM200.
+</p>
+</section>
+
+</main>
+
+<footer class="border-t border-slate-700 bg-slate-800 py-5 text-center text-xs text-slate-500">
+V3 — Données historiques Yahoo Finance · aucun ordre n'est exécuté automatiquement · décision à prendre tous les 15 jours.
+</footer>
+
+<script>
+const YAHOO = "https://query1.finance.yahoo.com/v8/finance/chart/";
+const FX_TICKER = "EURUSD=X";
+let CONFIG = {"version": "3.0", "source": "Yahoo Finance Chart API", "refreshHours": 6, "historyRange": "2y", "decisionIntervalDays": 15, "decisionAnchor": "2026-10-01", "canaries": [{"id": "EM", "ticker": "VFEA.DE", "name": "Émergents", "currency": "EUR", "role": "canary"}, {"id": "TIPS", "ticker": "IDTP.L", "name": "US TIPS", "currency": "USD", "role": "canary"}], "offensive": [{"id": "CW8", "ticker": "CW8.PA", "name": "MSCI World – Amundi CW8", "currency": "EUR"}, {"id": "SP500", "ticker": "SPYL.DE", "name": "S&P 500 – SPDR SPYL", "currency": "EUR"}, {"id": "PAASI", "ticker": "PAASI.PA", "name": "Asie émergente – Amundi PAASI", "currency": "EUR"}, {"id": "GOLD", "ticker": "XAU-EUR", "name": "Or – cours spot EUR (proxy)", "currency": "EUR", "proxy": true}, {"id": "COMO", "ticker": "COMO.PA", "name": "Matières premières – Amundi COMO", "currency": "EUR"}, {"id": "BTC", "ticker": "BTC-EUR", "name": "Bitcoin EUR", "currency": "EUR"}, {"id": "IEUS", "ticker": "IEUS", "name": "MSCI Europe Small Cap – iShares IEUS", "currency": "USD"}, {"id": "GDX", "ticker": "GDX", "name": "Gold Miners – VanEck GDX", "currency": "USD"}]};
+let refreshing = false;
+
+const $ = id => document.getElementById(id);
+const fmt = v => `${v>=0?'+':''}${v.toFixed(1)}%`;
+const clamp = (v,a=0,b=100) => Math.max(a,Math.min(b,v));
+
+function avg(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : NaN; }
+function ma(a,n){ return a.length<n ? NaN : avg(a.slice(-n)); }
+function pct(a,n){ return a.length<=n ? NaN : 100*(a[a.length-1]/a[a.length-1-n]-1); }
+function slopePct(a,n){
+  if(a.length<n+1) return NaN;
+  const x0=a[a.length-1-n], x1=a[a.length-1];
+  return 100*(x1/x0-1);
+}
+function percentile(vals,v){
+  const x=vals.filter(Number.isFinite).sort((a,b)=>a-b);
+  if(!x.length || !Number.isFinite(v)) return 50;
+  let k=0; for(const z of x) if(z<v) k++;
+  return x.length===1 ? 50 : 100*k/(x.length-1);
+}
+function daysAgo(sec){ return Math.floor(Date.now()/1000)-sec; }
+
+// --- Données : data.js est régénéré automatiquement chaque jour (GitHub Actions, voir LISEZMOI.txt)
+let BATCH=null, DATA_DATE=null;
+function loadData(){
+  return new Promise(res=>{
+    const sc=document.createElement("script");
+    sc.src="data.js?v="+Date.now();
+    sc.onload=()=>{
+      const Q=window.QUOTES;
+      if(Q&&Q.data){
+        BATCH=Q.data; DATA_DATE=Q.updated;
+        if(Q.config&&Array.isArray(Q.config.offensive)&&Array.isArray(Q.config.canaries)) CONFIG=Q.config;
+      }
+      sc.remove(); res(!!BATCH);
+    };
+    sc.onerror=()=>{sc.remove();res(false);};
+    document.head.appendChild(sc);
+  });
+}
+
+async function yahoo(ticker){
+  const b=BATCH&&BATCH[ticker];
+  if(!b||b.error||!b.series) throw new Error(ticker+" : "+((b&&b.error)||"absent de data.js"));
+  const o=b.series.map(([t,p])=>({t,p}));
+  if(o.length<210) throw new Error(ticker+" : seulement "+o.length+" séances");
+  return o;
+}
+
+async function loadSeries(item, fx){
+  const s=await yahoo(item.ticker);
+  // Convert USD quoted assets to EUR: USD price / EURUSD.
+  // For USD assets we fetch the same-date EURUSD series.
+  if(item.currency==="USD"){
+    const fxMap=new Map(fx.map(x=>[new Date(x.t*1000).toISOString().slice(0,10),x.p]));
+    const converted=[];
+    for(const d of s){
+      const key=new Date(d.t*1000).toISOString().slice(0,10);
+      const eurusd=fxMap.get(key);
+      if(Number.isFinite(eurusd) && eurusd>0) converted.push({t:d.t,p:d.p/eurusd});
+    }
+    return converted;
+  }
+  return s;
+}
+
+function metrics(s){
+  const p=s.map(x=>x.p);
+  const last=p[p.length-1];
+  const mm50=ma(p,50), mm200=ma(p,200);
+  const r1=pct(p,21), r3=pct(p,63), r6=pct(p,126), r12=pct(p,252);
+  const raw=12*r1+4*r3+2*r6+r12;
+  const prev3=p.length>84 ? 100*(p[p.length-22]/p[p.length-64]-1) : NaN;
+  const prev6=p.length>147 ? 100*(p[p.length-22]/p[p.length-127]-1) : NaN;
+  // Acceleration: recent 1M vs average monthly pace of 3M, then 3M vs 6M.
+  const acc=0.65*(r1-r3/3)+0.35*(r3/3-r6/6);
+  const mm50Slope=slopePct(p.slice(0,-1),20);
+  const mm200Slope=slopePct(p.slice(0,-1),60);
+  const dd20=100*(last/Math.max(...p.slice(-63))-1);
+  const trendRaw =
+    (last>mm50?30:0) +
+    (last>mm200?35:0) +
+    (mm50>mm200?25:0) +
+    (mm50Slope>0?5:0) +
+    (mm200Slope>0?5:0);
+  const confirmed = last>mm200 && mm50>mm200 && r1>0 && r3>0 && mm50Slope>0;
+  return {last,mm50,mm200,r1,r3,r6,r12,raw,acc,mm50Slope,mm200Slope,dd20,trendRaw,confirmed};
+}
+
+function canaryScore(s){
+  const p=s.map(x=>x.p);
+  const daily=[];
+  for(let i=0;i<p.length;i++){
+    const a=p.slice(0,i+1);
+    if(a.length<253) continue;
+    const r1=pct(a,21),r3=pct(a,63),r6=pct(a,126),r12=pct(a,252);
+    daily.push({t:s[i].t,score:12*r1+4*r3+2*r6+r12});
+  }
+  const last=daily[daily.length-1];
+  const smooth=daily.slice(-5).map(x=>x.score);
+  const m=last ? last.score : NaN;
+  return {r1:pct(p,21),r3:pct(p,63),r6:pct(p,126),r12:pct(p,252),raw:m,smooth:avg(smooth)};
+}
+
+async function refresh(force){
+  if(refreshing)return;
+  refreshing=true;
+  $("last-update").textContent="chargement…";
+  $("data-status").textContent="…";
+  try{
+    if(!await loadData()) throw new Error("data.js introuvable : les cours n'ont pas encore été générés (onglet Actions du dépôt GitHub > Run workflow).");
+    const all=[...(CONFIG.canaries||[]),...(CONFIG.offensive||[])];
+    const fx=await yahoo(FX_TICKER);
+    const results=[];
+    for(let i=0;i<all.length;i+=3){
+      results.push(...await Promise.allSettled(all.slice(i,i+3).map(x=>loadSeries(x,fx))));
+    }
+    const records=[];
+    for(let i=0;i<all.length;i++){
+      const item=all[i], res=results[i];
+      if(res.status==="fulfilled"){
+        const m=metrics(res.value);
+        records.push({...item,series:res.value,m});
+      }else{
+        records.push({...item,error:res.reason?.message||"erreur"});
+      }
+    }
+    render(records);
+    const ok=records.filter(x=>x.m).length;
+    $("last-update").textContent=DATA_DATE?new Date(DATA_DATE).toLocaleString("fr-FR"):"—";
+    $("data-status").textContent=`${ok}/${records.length}`;
+  }catch(e){
+    $("last-update").textContent="ERREUR";
+    $("data-status").textContent="Erreur";
+    alert("Impossible de charger les données : "+e.message);
+  }finally{refreshing=false;}
+}
+
+function render(records){
+  const canaryRecords=records.filter(x=>(CONFIG.canaries||[]).some(c=>c.id===x.id));
+  const offensive=records.filter(x=>(CONFIG.offensive||[]).some(c=>c.id===x.id) && x.m);
+
+  // Canaries
+  let red=0;
+  $("canary-body").innerHTML="";
+  for(const x of canaryRecords){
+    if(!x.m){
+      $("canary-body").innerHTML+=`<tr><td class="py-3 px-3 font-semibold">${x.name}</td><td colspan="7" class="py-3 px-3 text-rose-400">${x.error}</td></tr>`;
+      continue;
+    }
+    const c=canaryScore(x.series), state=c.smooth>=0?"VERT":"ROUGE"; if(state==="ROUGE")red++;
+    $("canary-body").innerHTML+=`<tr>
+      <td class="py-3 px-3 font-semibold">${x.name}<span class="text-slate-500 ml-1">${x.ticker}</span></td>
+      <td class="py-3 px-3 text-right">${fmt(c.r1)}</td><td class="py-3 px-3 text-right">${fmt(c.r3)}</td>
+      <td class="py-3 px-3 text-right">${fmt(c.r6)}</td><td class="py-3 px-3 text-right">${fmt(c.r12)}</td>
+      <td class="py-3 px-3 text-right font-semibold">${c.raw.toFixed(1)}</td>
+      <td class="py-3 px-3 text-right font-bold ${c.smooth>=0?'text-emerald-400':'text-rose-400'}">${c.smooth>=0?'+':''}${c.smooth.toFixed(1)}</td>
+      <td class="py-3 px-3 text-center font-bold ${c.smooth>=0?'text-emerald-400':'text-rose-400'}">${state}</td>
+    </tr>`;
+  }
+  $("canary-summary").innerHTML=`<span class="text-emerald-400">${canaryRecords.length-red} vert(s)</span> · <span class="text-rose-400">${red} rouge(s)</span>`;
+
+  const allocation=red===0?"100% Actions / 0% Cash":red===1?"50% Actions / 50% Cash":"0% Actions / 100% Cash";
+  $("allocation-title").textContent=allocation;
+  $("allocation-desc").textContent=red===0?"Les deux canaris sont positifs. La rotation offensive est autorisée."
+    :red===1?"Un canari est négatif. Exposition offensive réduite de moitié."
+    :"Les deux canaris sont négatifs. Pas d'achat offensif.";
+  const next=nextDecision();
+  $("decision-date").textContent=`Prochaine décision théorique : ${next.toLocaleDateString("fr-FR")}`;
+
+  // Cross-sectional relative strength
+  const rel=offensive.map(x=>0.6*x.m.r6+0.4*x.m.r12);
+  const mom=offensive.map(x=>x.m.raw);
+  const acc=offensive.map(x=>x.m.acc);
+
+  for(const x of offensive){
+    x.m.momentumScore=percentile(mom,x.m.raw);
+    x.m.relativeScore=percentile(rel,0.6*x.m.r6+0.4*x.m.r12);
+    x.m.accScore=percentile(acc,x.m.acc);
+    x.m.final=clamp(
+      0.35*x.m.momentumScore +
+      0.25*x.m.trendRaw +
+      0.20*x.m.accScore +
+      0.20*x.m.relativeScore
+    );
+    if(x.m.last<x.m.mm200 || x.m.mm50<x.m.mm200) x.signal="WATCH";
+    else if(x.m.r1<0 && x.m.r3<0) x.signal="EXCLU";
+    else if(x.m.confirmed && x.m.final>=60) x.signal="BUY";
+    else x.signal="WATCH";
+  }
+  offensive.sort((a,b)=>b.m.final-a.m.final);
+  $("asset-body").innerHTML="";
+  offensive.forEach((x,i)=>{
+    const m=x.m;
+    const sc=x.signal==="BUY"?"text-emerald-400 bg-emerald-500/10 border-emerald-500/30":x.signal==="WATCH"?"text-amber-400 bg-amber-500/10 border-amber-500/30":"text-rose-400 bg-rose-500/10 border-rose-500/30";
+    $("asset-body").innerHTML+=`<tr class="${x.signal==="BUY"?"bg-emerald-950/20":""}">
+      <td class="py-3 px-3 font-bold">#${i+1}</td>
+      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${x.id}</div><div class="text-xs text-slate-500">${x.name}</div></td>
+      <td class="py-3 px-3 text-right">${m.last.toLocaleString("fr-FR",{maximumFractionDigits:2})}</td>
+      <td class="py-3 px-3 text-right ${m.r1>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r1)}</td>
+      <td class="py-3 px-3 text-right ${m.r3>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r3)}</td>
+      <td class="py-3 px-3 text-right ${m.r6>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r6)}</td>
+      <td class="py-3 px-3 text-right ${m.r12>=0?'text-emerald-400':'text-rose-400'}">${fmt(m.r12)}</td>
+      <td class="py-3 px-3 text-right">${m.mm50.toFixed(2)}</td>
+      <td class="py-3 px-3 text-right">${m.mm200.toFixed(2)}</td>
+      <td class="py-3 px-3 text-right">${m.momentumScore.toFixed(0)}</td>
+      <td class="py-3 px-3 text-right">${m.trendRaw.toFixed(0)}</td>
+      <td class="py-3 px-3 text-right">${m.accScore.toFixed(0)}</td>
+      <td class="py-3 px-3 text-right">${m.relativeScore.toFixed(0)}</td>
+      <td class="py-3 px-3 text-right font-extrabold">${m.final.toFixed(1)}</td>
+      <td class="py-3 px-3 text-center"><span class="border px-2.5 py-1 rounded-full text-xs font-bold ${sc}">${x.signal}</span></td>
+    </tr>`;
+  });
+
+  const best=offensive.find(x=>x.signal==="BUY");
+  $("best-asset").textContent=best?`${best.id} — ${best.name}`:"Aucun BUY";
+  $("best-detail").textContent=best?`Score ${best.m.final.toFixed(1)}/100 · 1M ${fmt(best.m.r1)} · cours ${best.m.last.toFixed(2)}`:"Aucun actif ne réunit les conditions de confirmation.";
+
+  $("above200").textContent=`${offensive.filter(x=>x.m.last>x.m.mm200).length}/${offensive.length}`;
+  $("goldencross").textContent=`${offensive.filter(x=>x.m.mm50>x.m.mm200).length}/${offensive.length}`;
+  $("accelerating").textContent=`${offensive.filter(x=>x.m.acc>0).length}/${offensive.length}`;
+}
+
+function nextDecision(){
+  const anchor=new Date(CONFIG.decisionAnchor+"T00:00:00");
+  const step=CONFIG.decisionIntervalDays||15;
+  const now=new Date();
+  let d=new Date(anchor);
+  while(d<=now)d.setDate(d.getDate()+step);
+  return d;
+}
+
+$("refreshBtn").addEventListener("click",()=>refresh(true));
+
+refresh();
+setInterval(()=>refresh(),3600*1000);
+</script>
+</body>
+</html>

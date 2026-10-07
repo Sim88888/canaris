@@ -1,0 +1,12 @@
+MISE EN PLACE (une seule fois, ~5 minutes)
+1. Créez un compte gratuit sur github.com, puis : « + » > New repository > nom : canaris > Public > Create.
+2. « uploading an existing file » : glissez TOUT le contenu de ce dossier, y compris le dossier .github
+   (si le dossier caché pose problème : Add file > Create new file > nom « .github/workflows/update.yml » et collez le contenu).
+   Cliquez Commit changes.
+3. Settings > Actions > General > Workflow permissions > « Read and write permissions » > Save.
+4. Onglet Actions > « Mise à jour des cours » > Run workflow (génère data.js la première fois).
+5. Settings > Pages > Source : « Deploy from a branch », branche main, dossier / (root) > Save.
+   Après 1-2 minutes, votre page est à l'adresse : https://VOTRE-PSEUDO.github.io/canaris/
+
+USAGE QUOTIDIEN : ouvrez l'adresse (mettez-la en favori). Les cours sont mis à jour automatiquement
+chaque jour ouvré vers 8h30 (heure de Paris). Pour changer les actifs : modifiez assets_v3.json sur GitHub.

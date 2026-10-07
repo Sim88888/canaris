@@ -1,0 +1,75 @@
+{
+  "version": "3.0",
+  "source": "Yahoo Finance Chart API",
+  "refreshHours": 6,
+  "historyRange": "2y",
+  "decisionIntervalDays": 15,
+  "decisionAnchor": "2026-10-01",
+  "canaries": [
+    {
+      "id": "EM",
+      "ticker": "VFEA.DE",
+      "name": "Émergents",
+      "currency": "EUR",
+      "role": "canary"
+    },
+    {
+      "id": "TIPS",
+      "ticker": "IDTP.L",
+      "name": "US TIPS",
+      "currency": "USD",
+      "role": "canary"
+    }
+  ],
+  "offensive": [
+    {
+      "id": "CW8",
+      "ticker": "CW8.PA",
+      "name": "MSCI World – Amundi CW8",
+      "currency": "EUR"
+    },
+    {
+      "id": "SP500",
+      "ticker": "SPYL.DE",
+      "name": "S&P 500 – SPDR SPYL",
+      "currency": "EUR"
+    },
+    {
+      "id": "PAASI",
+      "ticker": "PAASI.PA",
+      "name": "Asie émergente – Amundi PAASI",
+      "currency": "EUR"
+    },
+    {
+      "id": "GOLD",
+      "ticker": "XAU-EUR",
+      "name": "Or – cours spot EUR (proxy)",
+      "currency": "EUR",
+      "proxy": true
+    },
+    {
+      "id": "COMO",
+      "ticker": "COMO.PA",
+      "name": "Matières premières – Amundi COMO",
+      "currency": "EUR"
+    },
+    {
+      "id": "BTC",
+      "ticker": "BTC-EUR",
+      "name": "Bitcoin EUR",
+      "currency": "EUR"
+    },
+    {
+      "id": "IEUS",
+      "ticker": "IEUS",
+      "name": "MSCI Europe Small Cap – iShares IEUS",
+      "currency": "USD"
+    },
+    {
+      "id": "GDX",
+      "ticker": "GDX",
+      "name": "Gold Miners – VanEck GDX",
+      "currency": "USD"
+    }
+  ]
+}
