@@ -47,6 +47,7 @@ def fetch(ticker):
 
 def main():
     cfg = json.load(open(os.path.join(HERE, "assets_v3.json"), encoding="utf-8"))
+    alts = {a["ticker"]: a.get("alt", []) for a in cfg["canaries"] + cfg["offensive"]}
     tickers = [a["ticker"] for a in cfg["canaries"] + cfg["offensive"]] + [FX]
     try: data = json.load(open(os.path.join(HERE, "data.json"), encoding="utf-8")).get("data", {})
     except Exception: data = {}
@@ -58,7 +59,15 @@ def main():
     got, blocked_streak = 0, 0
     for t in todo:
         try:
-            data[t] = {"series": fetch(t), "ts": int(time.time())}
+            try:
+                series = fetch(t)
+            except ValueError:                      # ticker inconnu : on essaie les tickers de secours
+                for alt in alts.get(t, []):
+                    try:
+                        series = fetch(alt); print("      (secours %s utilisé pour %s)" % (alt, t)); break
+                    except ValueError: continue
+                else: raise
+            data[t] = {"series": series, "ts": int(time.time())}
             got += 1; blocked_streak = 0
             print("OK    ", t)
         except Blocked as e:

@@ -42,10 +42,13 @@
     },
     {
       "id": "GOLD",
-      "ticker": "XAU-EUR",
-      "name": "Or – cours spot EUR (proxy)",
-      "currency": "EUR",
-      "proxy": true
+      "ticker": "XAUUSD=X",
+      "name": "Or – cours spot (USD converti en EUR)",
+      "currency": "USD",
+      "proxy": true,
+      "alt": [
+        "GC=F"
+      ]
     },
     {
       "id": "COMO",
