@@ -1,23 +1,26 @@
 name: Mise à jour des cours
 on:
   schedule:
-    - cron: "30 6 * * 1-5"   # chaque jour ouvré à 06:30 UTC
-  workflow_dispatch:           # bouton « Run workflow » pour lancer à la main
+    - cron: "30 6,9,12,16,20 * * 1-5"   # 5 tentatives par jour ouvré (UTC) : les adresses IP de GitHub changent
+  workflow_dispatch:                     # bouton « Run workflow »
   push:
-    paths: ["assets_v3.json"]  # relance si vous modifiez la liste des actifs
+    paths: ["assets_v3.json"]
 permissions:
   contents: write
+concurrency: maj-cours
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: python fetch_data.py
+        continue-on-error: true     # un échec de Yahoo n'est pas une erreur : on réessaiera plus tard
       - name: Enregistrer les nouveaux cours
         run: |
           git config user.name "cours-bot"
           git config user.email "cours-bot@users.noreply.github.com"
-          git add data.js data.json
-          git diff --cached --quiet || (git commit -m "Cours du $(date -u +%F)" && git push)
+          git add data.js data.json 2>/dev/null || true
+          git diff --cached --quiet || (git commit -m "Cours du $(date -u +%F\ %H:%M)" && git pull --rebase -q && git push)
