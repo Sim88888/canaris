@@ -57,7 +57,7 @@
 <div class="flex flex-col md:flex-row justify-between gap-3 mb-4">
   <div>
     <h3 class="text-lg font-bold"><i class="fa-solid fa-kiwi-bird text-indigo-400 mr-2"></i>État des 2 canaris</h3>
-    <p class="text-xs text-slate-400 mt-1">Score 13612 = 12×1M + 4×3M + 2×6M + 1×12M, lissé sur 5 séances. Seul le signe détermine Vert/Rouge.</p>
+    <p class="text-xs text-slate-400 mt-1">Score 13612 = 12×1M + 4×3M + 2×6M + 1×12M, lissé sur 5 séances. Seul le signe détermine Vert/Rouge. Calcul dans la devise de cotation (sans conversion EUR), sur cours de clôture (séance en cours exclue).</p>
   </div>
   <div id="canary-summary" class="text-sm"></div>
 </div>
@@ -72,9 +72,15 @@
 </section>
 
 <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-chart-area text-indigo-400 mr-2"></i>Canaris · historique sur 12 mois</h3>
+<p class="text-xs text-slate-400 mt-1">Trait épais : score 13612 lissé sur 5 séances (c'est lui qui décide). Trait fin gris : score brut du jour. Vert au-dessus de 0, rouge en dessous. La bande du bas montre l'état séance par séance ; les points marquent les changements d'état. Survolez le graphique pour lire les valeurs.</p>
+<div id="canary-charts" class="grid xl:grid-cols-2 gap-5 mt-4"></div>
+</section>
+
+<section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
 <div class="flex flex-col lg:flex-row justify-between gap-4 mb-5">
 <div>
-<h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive</h3>
+<h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive <span id="rotation-count" class="text-xs font-normal text-slate-400 ml-2"></span></h3>
 <p class="text-xs text-slate-400 mt-1">Le score cherche une hausse réelle et récente, pas seulement une forte performance passée. <span id="ref-decision-label"></span></p>
 </div>
 <div class="text-xs bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
@@ -85,13 +91,20 @@
 <table class="w-full text-left">
 <thead class="border-b border-slate-700 text-slate-400 text-xs uppercase">
 <tr>
-<th class="py-3 px-3">Rang</th><th class="py-3 px-3">Actif</th><th class="py-3 px-3 text-right">Score</th>
+<th class="py-3 px-3">Rang</th><th class="py-3 px-3">Actif</th><th class="py-3 px-3">Catégorie</th><th class="py-3 px-3 text-right">Score</th>
 <th class="py-3 px-3 text-center">Signal</th><th class="py-3 px-3 text-right">% à acheter</th><th class="py-3 px-3">Action</th>
 </tr>
 </thead>
 <tbody id="asset-body" class="divide-y divide-slate-700/60"></tbody>
 </table>
 </div>
+<details class="mt-4 bg-slate-900/40 border border-slate-700 rounded-xl p-4">
+<summary class="cursor-pointer text-sm font-semibold text-slate-300">Voir tous les actifs testés (<span id="all-count">0</span>)</summary>
+<div class="overflow-x-auto mt-3"><table class="w-full text-left text-sm">
+<thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-right">Score</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3">Statut</th></tr></thead>
+<tbody id="all-body" class="divide-y divide-slate-800"></tbody></table></div>
+<div id="all-errors"></div>
+</details>
 </section>
 
 <section id="products-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
@@ -117,7 +130,7 @@
 <b>BUY</b> = momentum positif + tendance confirmée + accélération/force relative suffisantes.
 <b>WATCH</b> = actif intéressant mais retournement encore incomplet.
 <b>EXCLU</b> = dynamique trop dégradée.
-Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous MM200.<br><b class="text-rose-300">VENDRE</b> = l'actif était BUY à la dernière décision et ne l'est plus. <b class="text-emerald-300">NOUVEAU</b> = devenu BUY depuis la dernière décision.<br>Répartition : un seul actif par doublon (SP500 / CW8 : le mieux noté), BTC plafonné à 10 % de la part investie, le reste proportionnel au score.
+Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous MM200.<br><b class="text-rose-300">VENDRE</b> = l'actif était BUY à la dernière décision et ne l'est plus. <b class="text-emerald-300">NOUVEAU</b> = devenu BUY depuis la dernière décision.<br>Répartition : seuls les 10 actifs les mieux notés sont éligibles ; un seul actif par classe (le mieux noté) ; chaque catégorie pèse proportionnellement au score de son meilleur actif ; les catégories « secondaires » et le bitcoin sont plafonnés à 10 % de la part investie, catégorie entière. Le score est relatif à l'ensemble des actifs testés.
 </p>
 </section>
 
@@ -176,6 +189,9 @@ async function yahoo(ticker){
   const b=BATCH&&BATCH[ticker];
   if(!b||b.error||!b.series) throw new Error(ticker+" : "+((b&&b.error)||"absent de data.js"));
   const o=b.series.map(([t,p])=>({t,p}));
+  // cours de clôture uniquement : on écarte la séance du jour (cours intraday qui change à chaque mise à jour)
+  const today=new Date().toISOString().slice(0,10);
+  if(o.length && new Date(o[o.length-1].t*1000).toISOString().slice(0,10)===today) o.pop();
   if(o.length<210) throw new Error(ticker+" : seulement "+o.length+" séances");
   return o;
 }
@@ -184,7 +200,7 @@ async function loadSeries(item, fx){
   const s=await yahoo(item.ticker);
   // Convert USD quoted assets to EUR: USD price / EURUSD.
   // For USD assets we fetch the same-date EURUSD series.
-  if(item.currency==="USD"){
+  if(item.currency==="USD" && item.role!=="canary" && item.convert!==false){   // les canaris restent dans leur devise de cotation
     const fxMap=new Map(fx.map(x=>[new Date(x.t*1000).toISOString().slice(0,10),x.p]));
     const converted=[];
     for(const d of s){
@@ -221,18 +237,84 @@ function metrics(s){
 }
 
 function canaryScore(s){
-  const p=s.map(x=>x.p);
-  const daily=[];
-  for(let i=0;i<p.length;i++){
-    const a=p.slice(0,i+1);
-    if(a.length<253) continue;
-    const r1=pct(a,21),r3=pct(a,63),r6=pct(a,126),r12=pct(a,252);
-    daily.push({t:s[i].t,score:12*r1+4*r3+2*r6+r12});
-  }
-  const last=daily[daily.length-1];
-  const smooth=daily.slice(-5).map(x=>x.score);
-  const m=last ? last.score : NaN;
-  return {r1:pct(p,21),r3:pct(p,63),r6:pct(p,126),r12:pct(p,252),raw:m,smooth:avg(smooth)};
+  const p=s.map(x=>x.p), n=p.length;
+  const ret=(i,k)=>100*(p[i]/p[i-k]-1);
+  const hist=[];
+  for(let i=252;i<n;i++) hist.push({t:s[i].t,raw:12*ret(i,21)+4*ret(i,63)+2*ret(i,126)+ret(i,252)});
+  const band=CONFIG.canaryBand||0;      // bande morte : on ne change d'état que si |score lissé| > band
+  let state=null;
+  hist.forEach((h,j)=>{
+    h.smooth=avg(hist.slice(Math.max(0,j-4),j+1).map(x=>x.raw));
+    if(state===null) state=h.smooth>=0?"VERT":"ROUGE";
+    else if(h.smooth>band) state="VERT";
+    else if(h.smooth<-band) state="ROUGE";
+    h.state=state;
+  });
+  const last=hist[hist.length-1];
+  return {r1:pct(p,21),r3:pct(p,63),r6:pct(p,126),r12:pct(p,252),raw:last?last.raw:NaN,smooth:last?last.smooth:NaN,state:last?last.state:null,hist};
+}
+
+// ───────── graphique SVG des canaris ─────────
+function canaryChartHtml(z,uid){
+  const H=z.c.hist.slice(-252); if(H.length<2) return '<div class="text-sm text-slate-400">Historique insuffisant.</div>';
+  const W=900,HT=240,pl=46,pr=10,pt=12,pb=36, n=H.length;
+  const xs=i=>pl+(W-pl-pr)*i/(n-1);
+  const vals=H.flatMap(h=>[h.smooth,h.raw]); let lo=Math.min(0,...vals), hi=Math.max(0,...vals);
+  const pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad;
+  const ys=v=>pt+(HT-pt-pb)*(1-(v-lo)/(hi-lo)), y0=ys(0), yb=HT-pb;
+  const line=k=>H.map((h,i)=>`${i?"L":"M"}${xs(i).toFixed(1)},${ys(h[k]).toFixed(1)}`).join(" ");
+  const S=line("smooth"), R=line("raw");
+  const area=`${S} L${xs(n-1).toFixed(1)},${y0.toFixed(1)} L${xs(0).toFixed(1)},${y0.toFixed(1)} Z`;
+  const G="#34d399", RD="#fb7185";
+  let strip="", flips=[], prev=null, ticks="", lastMonth=null;
+  const step=(W-pl-pr)/(n-1);
+  H.forEach((h,i)=>{
+    strip+=`<rect x="${(xs(i)-step/2).toFixed(1)}" y="${yb+6}" width="${(step+0.6).toFixed(1)}" height="8" fill="${h.state==="VERT"?G:RD}" opacity="0.85"/>`;
+    if(prev&&prev!==h.state) flips.push({i,h});
+    prev=h.state;
+    const d=new Date(h.t*1000), m=d.getUTCFullYear()*12+d.getUTCMonth();
+    if(m!==lastMonth){ lastMonth=m; if(i>3) ticks+=`<line x1="${xs(i)}" x2="${xs(i)}" y1="${pt}" y2="${yb}" stroke="#334155" stroke-width="0.6"/><text x="${xs(i)}" y="${HT-6}" fill="#94a3b8" font-size="11" text-anchor="middle">${d.toLocaleDateString("fr-FR",{month:"short",timeZone:"UTC"})}</text>`; }
+  });
+  const dots=flips.map(f=>`<circle cx="${xs(f.i).toFixed(1)}" cy="${ys(f.h.smooth).toFixed(1)}" r="4" fill="${f.h.state==="VERT"?G:RD}" stroke="#0f172a" stroke-width="1.5"/>`).join("");
+  const yt=[lo+pad,0,hi-pad].map(v=>`<text x="${pl-6}" y="${ys(v)+4}" fill="#94a3b8" font-size="11" text-anchor="end">${v.toFixed(0)}</text>`).join("");
+  const band=CONFIG.canaryBand||0;
+  const bandLines=band>0?[band,-band].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${ys(v)}" y2="${ys(v)}" stroke="#fbbf24" stroke-dasharray="2 4" stroke-width="1"/>`).join(""):"";
+  const lastFlip=flips.length?flips[flips.length-1]:null;
+  const cur=H[n-1];
+  return `<div>
+    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+      <div class="font-bold">${z.x.name} <span class="text-slate-500 text-xs">${z.x.ticker}</span></div>
+      <div class="text-xs"><span class="font-bold ${cur.state==="VERT"?"text-emerald-400":"text-rose-400"}">${cur.state}</span> · lissé ${cur.smooth.toFixed(1)} · ${flips.length} changement(s) d'état sur 12 mois${lastFlip?` · dernier : ${new Date(lastFlip.h.t*1000).toLocaleDateString("fr-FR")}`:""}</div>
+    </div>
+    <svg id="${uid}" viewBox="0 0 ${W} ${HT}" class="w-full h-auto bg-slate-900/50 rounded-lg" role="img" aria-label="Score du canari ${z.x.name} sur 12 mois">
+      <defs><clipPath id="${uid}a"><rect x="0" y="0" width="${W}" height="${y0.toFixed(1)}"/></clipPath><clipPath id="${uid}b"><rect x="0" y="${y0.toFixed(1)}" width="${W}" height="${HT}"/></clipPath></defs>
+      ${ticks}${yt}
+      <path d="${area}" fill="${G}" opacity="0.18" clip-path="url(#${uid}a)"/><path d="${area}" fill="${RD}" opacity="0.18" clip-path="url(#${uid}b)"/>
+      <line x1="${pl}" x2="${W-pr}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#cbd5e1" stroke-dasharray="4 4" stroke-width="1"/>${bandLines}
+      <path d="${R}" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.7"/>
+      <path d="${S}" fill="none" stroke="${G}" stroke-width="2.4" clip-path="url(#${uid}a)"/><path d="${S}" fill="none" stroke="${RD}" stroke-width="2.4" clip-path="url(#${uid}b)"/>
+      ${dots}${strip}
+      <line id="${uid}x" x1="0" x2="0" y1="${pt}" y2="${yb}" stroke="#e2e8f0" stroke-width="1" visibility="hidden"/>
+      <g id="${uid}t" visibility="hidden"><rect x="0" y="0" width="212" height="54" rx="6" fill="#0f172a" stroke="#475569"/><text id="${uid}t1" x="8" y="16" fill="#e2e8f0" font-size="12" font-weight="bold"></text><text id="${uid}t2" x="8" y="32" fill="#cbd5e1" font-size="11"></text><text id="${uid}t3" x="8" y="47" fill="#cbd5e1" font-size="11"></text></g>
+      <rect id="${uid}o" x="${pl}" y="${pt}" width="${W-pl-pr}" height="${yb-pt}" fill="transparent"/>
+    </svg></div>`;
+}
+function bindCanaryHover(z,uid){
+  const H=z.c.hist.slice(-252), svg=document.getElementById(uid); if(!svg||H.length<2) return;
+  const W=900,pl=46,pr=10,n=H.length, g=k=>document.getElementById(uid+k);
+  g("o").addEventListener("mousemove",e=>{
+    const r=svg.getBoundingClientRect(), x=(e.clientX-r.left)/r.width*W;
+    const i=Math.max(0,Math.min(n-1,Math.round((x-pl)/(W-pl-pr)*(n-1)))), h=H[i], px=pl+(W-pl-pr)*i/(n-1);
+    g("x").setAttribute("x1",px); g("x").setAttribute("x2",px); g("x").setAttribute("visibility","visible");
+    g("t1").textContent=new Date(h.t*1000).toLocaleDateString("fr-FR"); g("t2").textContent=`lissé ${h.smooth.toFixed(1)} · brut ${h.raw.toFixed(1)}`; g("t3").textContent=`état : ${h.state}`;
+    const tx=px>W/2?px-220:px+8; g("t").setAttribute("transform",`translate(${tx},16)`); g("t").setAttribute("visibility","visible");
+  });
+  g("o").addEventListener("mouseleave",()=>{ g("x").setAttribute("visibility","hidden"); g("t").setAttribute("visibility","hidden"); });
+}
+function drawCanaryCharts(cur){
+  const box=$("canary-charts");
+  box.innerHTML=cur.canaries.map((z,i)=>canaryChartHtml(z,"cc"+i)).join("");
+  cur.canaries.forEach((z,i)=>bindCanaryHover(z,"cc"+i));
 }
 
 async function refresh(force){
@@ -270,10 +352,24 @@ async function refresh(force){
 }
 
 // ───────── Paramètres de répartition (surchargeables dans assets_v3.json : "bucket", "cap") ─────────
-const DEFAULT_BUCKET={CW8:"DEV",SP500:"DEV"};
+const DEFAULT_CLASS={CW8:"EQ_DEV",SP500:"EQ_DEV",PAASI:"EM_ASIA",GOLD:"GOLD",COMO:"COMMO",BTC:"BTC",IEUS:"EQ_SMALL_EU",GDX:"GOLD_MINERS"};
+const DEFAULT_CLASS_LABEL={EQ_DEV:"Actions développées (monde / US)",EM_ASIA:"Émergents Asie",GOLD:"Or",COMMO:"Matières premières",BTC:"Bitcoin",EQ_SMALL_EU:"Petites caps Europe",GOLD_MINERS:"Mines d'or"};
 const DEFAULT_CAP={BTC:0.10};
-const bucketOf=x=>x.bucket??DEFAULT_BUCKET[x.id]??null;
+const classOf=x=>x.class??DEFAULT_CLASS[x.id]??x.id;
+const classLabel=c=>(CONFIG.classes&&CONFIG.classes[c])||DEFAULT_CLASS_LABEL[c]||c;
 const capOf=x=>x.cap??DEFAULT_CAP[x.id]??1;
+const DEFAULT_CATEGORY={CW8:"ACT_DEV",SP500:"ACT_DEV",PAASI:"ACT_SEC",IEUS:"ACT_SEC",GOLD:"OR",GDX:"OR_SEC",COMO:"MP",BTC:"BTC"};
+const DEFAULT_CATS={ACT_DEV:{label:"Actions développées (monde / US)",short:"Actions développées",cap:1},ACT_SEC:{label:"Actions secondaires dynamiques",short:"Actions secondaires",cap:0.10},OR:{label:"Or",short:"Or",cap:1},OR_SEC:{label:"Or secondaire dynamique",short:"Or secondaire",cap:0.10},MP:{label:"Matières premières",short:"Matières premières",cap:1},MP_SEC:{label:"Matières premières secondaires dynamiques",short:"Mat. premières second.",cap:0.10},OBLIG:{label:"Obligations",short:"Obligations",cap:1},BTC:{label:"Bitcoin",short:"Bitcoin",cap:0.10}};
+const cats=()=>({...DEFAULT_CATS,...(CONFIG.categories||{})});
+const catOf=x=>x.category??DEFAULT_CATEGORY[x.id]??"AUTRE";
+const catInfo=c=>cats()[c]||{label:c,short:c,cap:1};
+const TOP_N=()=>CONFIG.displayTop||10;
+const TOP_CLASSES=TOP_N;
+function topClassSet(cur){          // cur.off est trié par score décroissant : 1re apparition = meilleur score de la classe
+  const seen=[];
+  for(const o of cur.off){ const c=classOf(o.x); if(!seen.includes(c)) seen.push(c); if(seen.length>=TOP_CLASSES()) break; }
+  return new Set(seen);
+}
 const isCanary=id=>(CONFIG.canaries||[]).some(c=>c.id===id);
 const isOff=id=>(CONFIG.offensive||[]).some(c=>c.id===id);
 const fdate=d=>d.toLocaleDateString("fr-FR");
@@ -299,7 +395,7 @@ function snapshot(records,cutoff){
   const canaries=[];
   for(const x of records.filter(r=>isCanary(r.id)&&r.series)){
     const s=cut(x.series); if(s.length<260) continue;
-    const c=canaryScore(s); canaries.push({x,c,state:c.smooth>=0?"VERT":"ROUGE"});
+    const c=canaryScore(s); canaries.push({x,c,state:c.state});
   }
   const red=canaries.filter(z=>z.state==="ROUGE").length;
   const list=[];
@@ -323,30 +419,39 @@ function prevDecision(){
 // Répartition du versement : 1 actif par doublon, plafonds, reste proportionnel au score
 function allocate(cur){
   const exposure=(cur.actions??0)/100;
-  const pct={}, dropped=[];
-  const seen={}, kept=[];
-  for(const o of cur.off.filter(o=>o.signal==="BUY")){
-    const b=bucketOf(o.x);
-    if(b){ if(seen[b]){ dropped.push({o,by:seen[b]}); continue; } seen[b]=o; }
-    kept.push(o);
+  const top=cur.off.slice(0,TOP_N());                        // seuls les 10 actifs les mieux notés sont éligibles
+  const seenClass={}, kept=[], dropped=[];
+  for(const o of top){
+    if(o.signal!=="BUY") continue;
+    const c=classOf(o.x);
+    if(seenClass[c]){ dropped.push({o,by:seenClass[c]}); continue; }   // même sous-classe : on garde le mieux noté
+    seenClass[c]=o; kept.push(o);
   }
-  const w=new Map(); let free=kept.slice(), remaining=1;
+  const byCat=new Map();
+  for(const o of kept){ const c=catOf(o.x); if(!byCat.has(c)) byCat.set(c,[]); byCat.get(c).push(o); }
+  // poids de chaque catégorie ∝ meilleur score de la catégorie ; plafond = part maximale de la catégorie ENTIÈRE
+  const catList=[...byCat.entries()].map(([c,l])=>({c,l,score:Math.max(...l.map(o=>o.m.final)),cap:catInfo(c).cap??1}));
+  const wCat=new Map(); let free=catList.slice(), remaining=1;
   while(free.length){
-    const sum=free.reduce((a,o)=>a+o.m.final,0);
-    const over=free.filter(o=>remaining*o.m.final/sum>capOf(o.x)+1e-9);
-    if(!over.length){ free.forEach(o=>w.set(o.x.id,remaining*o.m.final/sum)); remaining=0; free=[]; break; }
-    over.forEach(o=>{ w.set(o.x.id,capOf(o.x)); remaining-=capOf(o.x); });
-    free=free.filter(o=>!over.includes(o));
+    const sum=free.reduce((a,z)=>a+z.score,0);
+    const over=free.filter(z=>remaining*z.score/sum>z.cap+1e-9);
+    if(!over.length){ free.forEach(z=>wCat.set(z.c,remaining*z.score/sum)); remaining=0; break; }
+    over.forEach(z=>{ wCat.set(z.c,z.cap); remaining-=z.cap; });
+    free=free.filter(z=>!over.includes(z));
   }
-  // arrondi à l'entier le plus proche, total = 100 avec le cash
-  const items=kept.map(o=>({id:o.x.id,v:100*exposure*(w.get(o.x.id)||0)}));
+  const items=[];
+  for(const z of catList){                                    // au sein d'une catégorie : réparti ∝ score
+    const tot=z.l.reduce((a,o)=>a+o.m.final,0);
+    z.l.forEach(o=>items.push({id:o.x.id,v:100*exposure*(wCat.get(z.c)||0)*o.m.final/tot}));
+  }
   const cashRaw=100-items.reduce((a,i)=>a+i.v,0);
   const all=[...items,{id:"__cash",v:cashRaw}];
   all.forEach(i=>i.f=Math.floor(i.v));
   let left=100-all.reduce((a,i)=>a+i.f,0);
   [...all].sort((a,b)=>(b.v-b.f)-(a.v-a.f)).slice(0,left).forEach(i=>i.f++);
-  all.forEach(i=>{ if(i.id!=="__cash") pct[i.id]=i.f; });
-  return {pct,cash:all.find(i=>i.id==="__cash").f,dropped,kept,exposure};
+  const pct={}; all.forEach(i=>{ if(i.id!=="__cash") pct[i.id]=i.f; });
+  const catPct={}; kept.forEach(o=>{ const c=catOf(o.x); catPct[c]=(catPct[c]||0)+(pct[o.x.id]||0); });
+  return {pct,catPct,cash:all.find(i=>i.id==="__cash").f,dropped,kept,exposure,top};
 }
 
 const PRODUCTS={
@@ -374,6 +479,19 @@ const PRODUCTS={
     {name:"iShares Physical Gold ETC (SGLN)",isin:"IE00B4ND3602",ter:"0,12 %",env:"CTO / AV"},
     {name:"Amundi Physical Gold ETC (GOLD)",isin:"FR0013416716",ter:"0,12 %",env:"CTO / AV",note:"cotation Paris"}]}
 };
+Object.assign(PRODUCTS,{
+  NRJC:{title:"Énergies nouvelles",items:[{name:"Amundi MSCI New Energy UCITS ETF Acc (NRJC)",isin:"FR0014002CG3",ter:"0,60 %",env:"CTO / AV",tag:"produit testé"}]},
+  NCLR:{title:"Uranium & nucléaire",items:[{name:"WisdomTree Uranium and Nuclear Energy UCITS ETF USD Acc (NCLR)",isin:"IE0003BJ2JS4",ter:"0,45 %",env:"CTO / AV",tag:"produit testé"}]},
+  GOAI:{title:"Intelligence artificielle",items:[{name:"Amundi STOXX Global Artificial Intelligence UCITS ETF Acc (GOAI)",isin:"LU1861132840",ter:"≈ 0,30–0,40 % (selon la source)",env:"CTO / AV",tag:"produit testé"}]},
+  D5BI:{title:"Mexique",items:[{name:"Xtrackers MSCI Mexico UCITS ETF 1C (D5BI)",isin:"LU0476289466",ter:"0,65 %",env:"CTO / AV",tag:"produit testé",note:"capitalisation ou distribution selon les sources : vérifier le DIC"}]},
+  COMM:{title:"Matières premières",items:[{name:"iShares Diversified Commodity Swap UCITS ETF (COMM)",isin:"IE00BDFL4P12",ter:"≈ 0,46 %",env:"CTO / AV",note:"COMO (0,30 %) est moins cher"}]},
+  BRKB:{title:"Berkshire Hathaway",note:"Action individuelle (pas de TER).",items:[{name:"Berkshire Hathaway classe B (BRK.B)",isin:"US0846707026",ter:"aucun (action)",env:"CTO"}]},
+  IUSN:{title:"Petites caps monde",items:[{name:"iShares MSCI World Small Cap UCITS ETF (IUSN)",isin:"IE00BF4RFH31",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  EUNM:{title:"Émergents monde",items:[{name:"iShares MSCI Emerging Markets UCITS ETF (EUNM)",isin:"IE00B4L5YC18",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  XFVT:{title:"Vietnam",items:[{name:"Xtrackers FTSE Vietnam Swap UCITS ETF (XFVT)",isin:"LU0322252924",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  LTUR:{title:"Turquie",items:[{name:"MSCI Turkey UCITS ETF (LTUR)",isin:"LU1900067601",ter:"à vérifier sur le DIC",env:"CTO / AV",tag:"produit testé"}]},
+  AWAT:{title:"Eau",items:[{name:"Amundi MSCI Water UCITS ETF (AWAT)",isin:"FR0011882364",ter:"à vérifier sur le DIC",env:"PEA / CTO",tag:"produit testé",note:"version à distribution probable : chercher la version Acc"}]}
+});
 const justetfLink=isin=>`https://www.justetf.com/fr/etf-profile.html?isin=${isin}`;
 
 function renderProducts(alloc){
@@ -390,7 +508,7 @@ function renderProducts(alloc){
         <div class="text-xs text-slate-400 mt-0.5">${it.isin?`<span class="font-mono">${it.isin}</span> · `:""}<span class="text-emerald-300 font-semibold">TER ${it.ter}</span> · ${it.env}${it.tag?` · <span class="text-amber-300">${it.tag}</span>`:""}${it.note?` · ${it.note}`:""}</div></div>`).join("")
         +(P.note?`<div class="text-xs text-slate-500 mt-2">${P.note}</div>`:"");
     }else{
-      body=`<div class="mt-2 text-xs text-slate-400">Pas de produit vérifié pour cet actif. Cherchez un équivalent UCITS à capitalisation sur <a class="text-indigo-300 hover:underline" target="_blank" rel="noopener" href="https://www.justetf.com/fr/search.html?search=ETFS&query=${encodeURIComponent(o.x.name.split("–")[0].trim())}">justETF</a> (tri par TER).</div>`;
+      body=`<div class="mt-2 text-xs text-slate-400">${o.x.us?'<b class="text-amber-300">ETF coté aux États-Unis :</b> en principe non accessible aux particuliers de l\'UE (réglementation PRIIPs). ':''}Pas de produit vérifié pour cet actif. Cherchez un équivalent UCITS à capitalisation sur <a class="text-indigo-300 hover:underline" target="_blank" rel="noopener" href="https://www.justetf.com/fr/search.html?search=ETFS&query=${encodeURIComponent(o.x.name.split("–")[0].trim())}">justETF</a> (tri par TER).</div>`;
     }
     box.innerHTML+=`<div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">${head}${body}</div>`;
   }
@@ -403,6 +521,8 @@ function render(records){
   const dd=prevDecision();
   const refDec=snapshot(records,dd.getTime()/1000+86399);
   const alloc=allocate(cur);
+  const refAlloc=allocate(refDec);
+  const held=new Set(Object.keys(refAlloc.pct).filter(id=>refAlloc.pct[id]>0));
 
   // ── Canaris
   $("canary-body").innerHTML="";
@@ -425,6 +545,8 @@ function render(records){
     </tr>`;
   }
   $("canary-summary").innerHTML=`<span class="text-emerald-400">${cur.canaries.length-cur.red} vert(s)</span> · <span class="text-rose-400">${cur.red} rouge(s)</span>`;
+
+  drawCanaryCharts(cur);
 
   // ── Décision tactique
   const a=cur.actions;
@@ -449,52 +571,83 @@ function render(records){
   }
   $("decision-date").textContent=`Décision précédente : ${fdate(dd)} · Prochaine décision théorique : ${fdate(nextDecision())}`;
 
-  // ── Répartition du versement
+  // ── Répartition du versement par catégorie
   let list="";
-  for(const o of cur.off.filter(o=>alloc.pct[o.x.id]>0)){
-    list+=`<div class="flex justify-between items-center"><span class="font-mono font-bold text-indigo-300">${o.x.id}</span><span class="text-lg font-extrabold text-emerald-400">${alloc.pct[o.x.id]} %</span></div>`;
+  for(const [c,info] of Object.entries(cats())){
+    const tot=alloc.catPct[c]; if(!tot) continue;
+    const members=alloc.kept.filter(o=>catOf(o.x)===c&&alloc.pct[o.x.id]>0);
+    list+=`<div><div class="flex justify-between items-baseline"><span class="font-bold text-indigo-300">${info.short||info.label}</span><span class="text-lg font-extrabold text-emerald-400">${tot} %</span></div>`
+      +members.map(o=>`<div class="flex justify-between text-xs text-slate-400 pl-3"><span><span class="font-mono text-slate-300">${o.x.id}</span> · ${classLabel(classOf(o.x))}</span><span>${alloc.pct[o.x.id]} %</span></div>`).join("")+`</div>`;
   }
-  list+=`<div class="flex justify-between items-center border-t border-slate-700 pt-2"><span class="font-mono font-bold text-slate-300">CASH</span><span class="text-lg font-extrabold text-slate-300">${alloc.cash} %</span></div>`;
+  list+=`<div class="flex justify-between items-center border-t border-slate-700 pt-2"><span class="font-bold text-slate-300">Cash</span><span class="text-lg font-extrabold text-slate-300">${alloc.cash} %</span></div>`;
   $("alloc-list").innerHTML=list;
   const notes=[];
   if(alloc.exposure>0){
-    alloc.dropped.forEach(d=>notes.push(`${d.o.x.id} non retenu (doublon avec ${d.by.x.id})`));
-    alloc.kept.forEach(o=>{ if(capOf(o.x)<1 && Math.abs((alloc.pct[o.x.id]||0)-100*alloc.exposure*capOf(o.x))<1.01) notes.push(`${o.x.id} plafonné à ${Math.round(capOf(o.x)*100)} % de la part investie`); });
+    alloc.dropped.forEach(d=>notes.push(`${d.o.x.id} non retenu : même classe que ${d.by.x.id}`));
+    for(const [c,info] of Object.entries(cats())){
+      if((info.cap??1)<1 && alloc.catPct[c] && Math.abs(alloc.catPct[c]-100*alloc.exposure*info.cap)<1.01) notes.push(`${info.short||info.label} plafonné à ${Math.round(info.cap*100)} % de la part investie`);
+    }
   }else notes.push("Aucun achat offensif tant qu'un canari au moins n'est pas repassé au vert.");
   $("alloc-note").textContent=notes.join(" · ");
 
-  // ── Tableau de rotation
-  const sells=[], newBuys=[];
+  // ── Ventes / achats : positions détenues à la décision précédente vs signaux actuels
+  const sells=[], newBuys=[], switches=[], outTop=[];
+  for(const id of held){
+    const o=cur.off.find(z=>z.x.id===id); if(!o) continue;
+    if(o.signal!=="BUY") sells.push({o,refSig:"BUY"});
+    else if(!alloc.kept.includes(o)){
+      const rep=alloc.kept.find(k=>classOf(k.x)===classOf(o.x));
+      if(rep) switches.push({from:o,to:rep}); else outTop.push(o);
+    }
+  }
+  if(refAlloc.exposure>0) alloc.kept.forEach(o=>{ if(!held.has(o.x.id)&&alloc.pct[o.x.id]>0) newBuys.push(o); });
+
+  // ── Tableau de rotation : les 10 actifs les mieux notés
   $("ref-decision-label").textContent=`Changements comparés à la décision du ${fdate(dd)}.`;
+  const rows=cur.off.slice(0,TOP_N()).map(o=>({o}));
+  for(const sl of sells){ if(!rows.some(r=>r.o===sl.o)) rows.push({o:sl.o,extra:true}); }
+  $("rotation-count").textContent=`${TOP_N()} meilleurs actifs sur ${cur.off.length} testés`;
   $("asset-body").innerHTML="";
-  cur.off.forEach((o,i)=>{
-    const refSig=refDec.off.find(r=>r.x.id===o.x.id)?.signal;
-    const sell=refSig==="BUY"&&o.signal!=="BUY";
-    const fresh=refSig&&refSig!=="BUY"&&o.signal==="BUY";
-    const p=alloc.pct[o.x.id], dup=alloc.dropped.find(d=>d.o.x.id===o.x.id);
-    if(sell) sells.push({o,refSig}); if(fresh&&p>0) newBuys.push(o);
+  rows.forEach((r,i)=>{
+    const o=r.o;
+    const sell=sells.some(z=>z.o===o);
+    const p=alloc.pct[o.x.id]||0, dup=alloc.dropped.find(d=>d.o===o);
     const sc=o.signal==="BUY"?"text-emerald-400 bg-emerald-500/10 border-emerald-500/30":o.signal==="WATCH"?"text-amber-400 bg-amber-500/10 border-amber-500/30":"text-rose-400 bg-rose-500/10 border-rose-500/30";
     let action="<span class='text-slate-500'>—</span>";
-    if(sell) action=`<div class="inline-block bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-lg animate-pulse">🔴 VENDRE</div><div class="text-xs text-rose-300 mt-1">Signal changé : ${refSig} → ${o.signal}</div>`;
-    else if(dup) action=`<span class="text-xs text-slate-400">Doublon : on garde ${dup.by.x.id}</span>`;
-    else if(p>0) action=`<span class="text-emerald-300 font-bold">Acheter</span>${fresh?` <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-2 py-0.5 rounded ml-1">NOUVEAU</span>`:""}`;
-    else if(o.signal==="BUY") action=`<span class="text-xs text-slate-400">BUY, mais exposition à 0 %</span>`;
+    if(sell) action=`<div class="inline-block bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-lg animate-pulse">🔴 VENDRE</div><div class="text-xs text-rose-300 mt-1">Signal changé : BUY → ${o.signal}</div>`;
+    else if(p>0) action=`<span class="text-emerald-300 font-bold">Acheter</span>${!held.has(o.x.id)&&refAlloc.exposure>0?` <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-2 py-0.5 rounded ml-1">NOUVEAU</span>`:""}`;
+    else if(dup) action=`<span class="text-xs text-slate-400">Même classe que ${dup.by.x.id} (mieux noté)</span>`;
+    else if(o.signal==="BUY") action=`<span class="text-xs text-slate-400">${alloc.exposure===0?"BUY, mais exposition à 0 %":"BUY, poids inférieur à 1 %"}</span>`;
     $("asset-body").innerHTML+=`<tr class="${sell?"bg-rose-950/40":o.signal==="BUY"?"bg-emerald-950/20":""}">
-      <td class="py-3 px-3 font-bold">#${i+1}</td>
-      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}</div><div class="text-xs text-slate-500">${o.x.name}</div></td>
+      <td class="py-3 px-3 font-bold">${r.extra?"—":"#"+(i+1)}</td>
+      <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}</div><div class="text-xs text-slate-500">${o.x.name}</div><div class="text-[11px] text-slate-500">classe : ${classLabel(classOf(o.x))}</div></td>
+      <td class="py-3 px-3 text-sm text-slate-300">${catInfo(catOf(o.x)).short||catInfo(catOf(o.x)).label}</td>
       <td class="py-3 px-3 text-right font-extrabold text-lg">${o.m.final.toFixed(1)}</td>
-      <td class="py-3 px-3 text-center"><span class="border px-2.5 py-1 rounded-full text-xs font-bold ${sc}">${o.signal}</span>${refSig&&refSig!==o.signal?`<div class="text-[11px] mt-1 text-rose-300">était ${refSig}</div>`:""}</td>
+      <td class="py-3 px-3 text-center"><span class="border px-2.5 py-1 rounded-full text-xs font-bold ${sc}">${o.signal}</span></td>
       <td class="py-3 px-3 text-right text-xl font-extrabold ${p>0?"text-emerald-400":"text-slate-600"}">${p>0?p+" %":"—"}</td>
       <td class="py-3 px-3">${action}</td></tr>`;
   });
 
+  // ── Tous les actifs testés (repliable)
+  $("all-count").textContent=cur.off.length;
+  $("all-body").innerHTML=cur.off.map((o,i)=>{
+    const p=alloc.pct[o.x.id]||0, dup=alloc.dropped.find(d=>d.o===o), sell=sells.some(z=>z.o===o);
+    const sc=o.signal==="BUY"?"text-emerald-400":o.signal==="WATCH"?"text-amber-400":"text-rose-400";
+    const status=sell?'<b class="text-rose-400">VENDRE</b>':p>0?`<span class="text-emerald-300">retenu · ${p} %</span>`:dup?`<span class="text-slate-500">même classe que ${dup.by.x.id}</span>`:(o.signal==="BUY"&&i>=TOP_N())?'<span class="text-slate-500">BUY, hors des 10 meilleurs</span>':"";
+    return `<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-right font-bold">${o.m.final.toFixed(1)}</td><td class="py-1.5 px-3 text-center font-bold ${sc}">${o.signal}</td><td class="py-1.5 px-3 text-xs">${status}</td></tr>`;
+  }).join("");
+  const missing=records.filter(r=>isOff(r.id)&&!r.series);
+  $("all-errors").innerHTML=missing.length?`<div class="text-xs text-rose-400 mt-2">Sans données (exclus du modèle) : ${missing.map(m=>`<b>${m.id}</b> (${m.ticker})`).join(", ")}</div>`:"";
+
   // ── Bandeau d'alerte
   const box=$("alert-box");
-  if(sells.length||newBuys.length){
+  if(sells.length||newBuys.length||switches.length||outTop.length){
     box.className="";
-    box.innerHTML=`<div class="border-2 border-rose-500 bg-rose-950/50 rounded-2xl p-5">
-      ${sells.length?`<div class="text-rose-300 font-extrabold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i>SIGNAL CHANGÉ — À VENDRE : ${sells.map(s=>`<span class="font-mono">${s.o.x.id}</span> (${s.refSig} → ${s.o.signal})`).join(", ")}</div>`:""}
-      ${newBuys.length?`<div class="text-emerald-300 font-bold mt-1">Nouveau signal BUY : ${newBuys.map(o=>o.x.id).join(", ")}</div>`:""}
+    box.innerHTML=`<div class="border-2 ${sells.length?"border-rose-500 bg-rose-950/50":"border-emerald-600 bg-emerald-950/30"} rounded-2xl p-5">
+      ${sells.length?`<div class="text-rose-300 font-extrabold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i>SIGNAL CHANGÉ — À VENDRE : ${sells.map(z=>`<span class="font-mono">${z.o.x.id}</span> (${catInfo(catOf(z.o.x)).short}, BUY → ${z.o.signal})`).join(", ")}</div>`:""}
+      ${newBuys.length?`<div class="text-emerald-300 font-bold mt-1">Nouveau signal BUY : ${newBuys.map(o=>`${o.x.id} (${catInfo(catOf(o.x)).short})`).join(", ")}</div>`:""}
+      ${switches.length?`<div class="text-amber-300 text-sm mt-1">Meilleur actif de la classe changé : ${switches.map(z=>`${classLabel(classOf(z.from.x))} — ${z.from.x.id} → ${z.to.x.id} (optionnel)`).join(" ; ")}</div>`:""}
+      ${outTop.length?`<div class="text-amber-300 text-sm mt-1">Sorti des 10 meilleurs (toujours BUY, ne plus renforcer) : ${outTop.map(o=>o.x.id).join(", ")}</div>`:""}
       <div class="text-xs text-slate-400 mt-1">Comparaison avec la décision du ${fdate(dd)}.</div></div>`;
   }else{ box.className="hidden"; box.innerHTML=""; }
 
