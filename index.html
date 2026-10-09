@@ -98,13 +98,13 @@
 <tbody id="asset-body" class="divide-y divide-slate-700/60"></tbody>
 </table>
 </div>
-<details class="mt-4 bg-slate-900/40 border border-slate-700 rounded-xl p-4">
-<summary class="cursor-pointer text-sm font-semibold text-slate-300">Voir tous les actifs testés (<span id="all-count">0</span>)</summary>
+<div class="mt-6 bg-slate-900/40 border border-slate-700 rounded-xl p-4">
+<h4 class="text-sm font-semibold text-slate-300">Tous les actifs testés (<span id="all-count">0</span>)</h4>
 <div class="overflow-x-auto mt-3"><table class="w-full text-left text-sm">
 <thead class="text-xs uppercase text-slate-400 border-b border-slate-700"><tr><th class="py-2 px-3">#</th><th class="py-2 px-3">Catégorie</th><th class="py-2 px-3">Actif</th><th class="py-2 px-3 text-right">Score</th><th class="py-2 px-3 text-center">Signal</th><th class="py-2 px-3">Statut</th></tr></thead>
 <tbody id="all-body" class="divide-y divide-slate-800"></tbody></table></div>
 <div id="all-errors"></div>
-</details>
+</div>
 </section>
 
 <section id="products-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
@@ -172,12 +172,16 @@ function loadData(){
   return new Promise(res=>{
     const sc=document.createElement("script");
     sc.src="data.js?v="+Date.now();
-    sc.onload=()=>{
+    sc.onload=async()=>{
       const Q=window.QUOTES;
       if(Q&&Q.data){
         BATCH=Q.data; DATA_DATE=Q.updated;
-        if(Q.config&&Array.isArray(Q.config.offensive)&&Array.isArray(Q.config.canaries)) CONFIG=Q.config;
+        if(Q.config&&Array.isArray(Q.config.offensive)&&Array.isArray(Q.config.canaries)) CONFIG=Q.config;   // repli
       }
+      try{   // liste d'actifs : assets_v3.json lu directement (à jour dès son déploiement, même avant les nouveaux cours)
+        const r=await fetch("assets_v3.json?v="+Date.now(),{cache:"no-store"});
+        if(r.ok){ const c=await r.json(); if(Array.isArray(c.offensive)&&Array.isArray(c.canaries)) CONFIG=c; }
+      }catch(e){}
       sc.remove(); res(!!BATCH);
     };
     sc.onerror=()=>{sc.remove();res(false);};
@@ -628,16 +632,18 @@ function render(records){
       <td class="py-3 px-3">${action}</td></tr>`;
   });
 
-  // ── Tous les actifs testés (repliable)
-  $("all-count").textContent=cur.off.length;
-  $("all-body").innerHTML=cur.off.map((o,i)=>{
+  // ── Tous les actifs testés : toujours affichés (calculés, puis ceux sans cours avec la raison)
+  const missing=records.filter(r=>isOff(r.id)&&!r.series);
+  $("all-count").textContent=`${cur.off.length} calculés sur ${cur.off.length+missing.length}`;
+  let allRows=cur.off.map((o,i)=>{
     const p=alloc.pct[o.x.id]||0, dup=alloc.dropped.find(d=>d.o===o), sell=sells.some(z=>z.o===o);
     const sc=o.signal==="BUY"?"text-emerald-400":o.signal==="WATCH"?"text-amber-400":"text-rose-400";
     const status=sell?'<b class="text-rose-400">VENDRE</b>':p>0?`<span class="text-emerald-300">retenu · ${p} %</span>`:dup?`<span class="text-slate-500">même classe que ${dup.by.x.id}</span>`:(o.signal==="BUY"&&i>=TOP_N())?'<span class="text-slate-500">BUY, hors des 10 meilleurs</span>':"";
     return `<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-right font-bold">${o.m.final.toFixed(1)}</td><td class="py-1.5 px-3 text-center font-bold ${sc}">${o.signal}</td><td class="py-1.5 px-3 text-xs">${status}</td></tr>`;
   }).join("");
-  const missing=records.filter(r=>isOff(r.id)&&!r.series);
-  $("all-errors").innerHTML=missing.length?`<div class="text-xs text-rose-400 mt-2">Sans données (exclus du modèle) : ${missing.map(m=>`<b>${m.id}</b> (${m.ticker})`).join(", ")}</div>`:"";
+  allRows+=missing.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-right text-slate-600">—</td><td class="py-1.5 px-3 text-center text-slate-600">—</td><td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
+  $("all-body").innerHTML=allRows;
+  $("all-errors").innerHTML=missing.length?`<div class="text-xs text-slate-400 mt-2">Les actifs sans cours sont exclus du modèle jusqu'à leur prochaine récupération (GitHub Actions, plusieurs passages par jour).</div>`:"";
 
   // ── Bandeau d'alerte
   const box=$("alert-box");
