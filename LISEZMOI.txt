@@ -8,5 +8,23 @@ MISE EN PLACE (une seule fois, ~5 minutes)
 5. Settings > Pages > Source : « Deploy from a branch », branche main, dossier / (root) > Save.
    Après 1-2 minutes, votre page est à l'adresse : https://VOTRE-PSEUDO.github.io/canaris/
 
-USAGE QUOTIDIEN : ouvrez l'adresse (mettez-la en favori). Les cours sont mis à jour automatiquement
-chaque jour ouvré vers 8h30 (heure de Paris). Pour changer les actifs : modifiez assets_v3.json sur GitHub.
+MISE À JOUR DE LA PAGE : remplacez index.html, assets_v3.json et fetch_data.py sur GitHub (Add file > Upload files).
+La modification de assets_v3.json relance automatiquement la mise à jour des cours.
+
+USAGE QUOTIDIEN : ouvrez l'adresse (mettez-la en favori). Les cours sont mis à jour automatiquement en semaine.
+Réglages dans assets_v3.json : "bucket" (actifs doublons : un seul retenu), "cap" (plafond de poids, ex. 0.10 = 10 %).
+
+CLASSES D'ACTIFS (assets_v3.json)
+- chaque actif a un champ "class" ; une seule position est achetée par classe (le meilleur actif BUY de la classe).
+- "classes" donne le libellé affiché ; "displayTop" (défaut 10) fixe le nombre de classes affichées ET achetables.
+- pour ajouter un actif : ajoutez-le dans "offensive" (id, ticker Yahoo, name, currency EUR/USD, class). Les ETF américains : "us": true.
+- si un ticker n'existe pas sur Yahoo, l'étape « Run python fetch_data.py » affiche « ECHEC <ticker> » : l'actif est alors exclu du modèle ; on peut lister des tickers de secours dans "alt".
+
+CATÉGORIES (assets_v3.json, champ "categories")
+- chaque actif a une "category" ; chaque catégorie a un "cap" (part maximale de la part investie, catégorie ENTIÈRE) : 0.10 = 10 %, 1 = sans plafond.
+- seuls les 10 actifs les mieux notés sont affichés ET éligibles à l'achat ("displayTop").
+- chaque catégorie pèse proportionnellement au score de son meilleur actif BUY ; un seul actif par classe.
+
+CANARIS
+- calcul dans la devise de cotation (pas de conversion EUR), sur cours de clôture (séance en cours exclue).
+- "canaryBand" (défaut 0) : bande morte pour limiter les bascules vert/rouge près de zéro (ex. 3 = on ne change d'état que si le score lissé dépasse ±3).
