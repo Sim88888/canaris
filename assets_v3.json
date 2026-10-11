@@ -289,44 +289,120 @@
   "categories": {
     "ACT_DEV": {
       "label": "Actions développées (monde / US)",
-      "short": "Actions développées",
-      "cap": 1
+      "short": "Actions développées"
     },
     "ACT_SEC": {
       "label": "Actions secondaires dynamiques",
-      "short": "Actions secondaires",
-      "cap": 0.1
+      "short": "Actions secondaires"
     },
     "OR": {
       "label": "Or",
-      "short": "Or",
-      "cap": 1
+      "short": "Or"
     },
     "OR_SEC": {
       "label": "Or secondaire dynamique",
-      "short": "Or secondaire",
-      "cap": 0.1
+      "short": "Or secondaire"
     },
     "MP": {
       "label": "Matières premières",
-      "short": "Matières premières",
-      "cap": 1
+      "short": "Matières premières"
     },
     "MP_SEC": {
       "label": "Matières premières secondaires dynamiques",
-      "short": "Mat. premières second.",
-      "cap": 0.1
+      "short": "Mat. premières second."
     },
     "OBLIG": {
       "label": "Obligations",
-      "short": "Obligations",
-      "cap": 1
+      "short": "Obligations"
     },
     "BTC": {
       "label": "Bitcoin",
-      "short": "Bitcoin",
-      "cap": 0.1
+      "short": "Bitcoin"
     }
   },
-  "canaryBand": 0
+  "canaryBand": 0,
+  "regles": {
+    "_aide": "Parts exprimées en % du budget d'achat (= part investie, fixée par les canaris). Modifiable sans toucher à la page.",
+    "coeur": {
+      "categorie": "ACT_DEV",
+      "paliers": [
+        {
+          "min": 90,
+          "part": 70
+        },
+        {
+          "min": 80,
+          "part": 60
+        },
+        {
+          "min": 70,
+          "part": 40
+        }
+      ],
+      "reliquatAuCoeur": true
+    },
+    "complements": {
+      "categories": [
+        "OR",
+        "MP",
+        "BTC"
+      ],
+      "paliers": [
+        {
+          "min": 90,
+          "part": 15
+        },
+        {
+          "min": 80,
+          "part": 10
+        },
+        {
+          "min": 70,
+          "part": 5
+        }
+      ],
+      "plafondsParActif": {
+        "BTC": 10
+      },
+      "plafondTotal": 30
+    },
+    "secondaires": {
+      "categories": [
+        "ACT_SEC",
+        "MP_SEC",
+        "OR_SEC"
+      ],
+      "scoreMin": 80,
+      "scoreDeuxiemeActif": 90,
+      "fortes": {
+        "coeurMin": 80,
+        "complementsMin": 80,
+        "nbComplements": 2,
+        "budgetMax": 5,
+        "nbMax": 1
+      },
+      "moyennes": {
+        "budgetMax": 10,
+        "nbMax": 2
+      },
+      "faibles": {
+        "coeurSous": 70,
+        "aucunComplementMin": 80,
+        "budgetMax": 20,
+        "nbMax": 3
+      }
+    },
+    "exclusionsSiCoeur": [
+      "MAGS"
+    ],
+    "familles": {
+      "EM_WORLD": "EM",
+      "EM_ASIA": "EM",
+      "OIL": "ENERGIE",
+      "NEW_ENERGY": "ENERGIE",
+      "URANIUM": "ENERGIE",
+      "GOLD_MINERS": "MINIERS",
+      "SILVER_MINERS": "MINIERS"
+    }
+  }
 }

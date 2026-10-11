@@ -33,22 +33,22 @@
 <section id="alert-box" class="hidden"></section>
 
 <section class="bg-gradient-to-r from-slate-800 to-indigo-950/60 border border-indigo-500/30 rounded-2xl p-6 shadow-xl">
-<div class="flex flex-col xl:flex-row justify-between gap-6">
-  <div class="flex-1">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+  <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl min-w-0 h-full">
     <div class="text-indigo-400 text-sm font-semibold uppercase tracking-wider mb-1"><i class="fa-solid fa-crosshairs mr-1"></i> Décision tactique</div>
     <h2 id="allocation-title" class="text-4xl font-extrabold">Chargement…</h2>
-    <div class="mt-4 h-4 rounded-full bg-slate-700 overflow-hidden flex max-w-xl">
+    <div class="mt-4 h-4 rounded-full bg-slate-700 overflow-hidden flex">
       <div id="alloc-bar-actions" class="h-full bg-emerald-500"></div><div id="alloc-bar-cash" class="h-full bg-slate-500"></div>
     </div>
-    <div class="flex justify-between text-xs text-slate-400 mt-1 max-w-xl"><span id="alloc-actions-label"></span><span id="alloc-cash-label"></span></div>
-    <p id="allocation-desc" class="text-slate-300 text-sm mt-3 max-w-3xl"></p>
-    <div id="decision-change" class="mt-4 max-w-3xl"></div>
+    <div class="flex justify-between text-xs text-slate-400 mt-1"><span id="alloc-actions-label"></span><span id="alloc-cash-label"></span></div>
+    <p id="allocation-desc" class="text-slate-300 text-sm mt-3"></p>
+    <div id="decision-change" class="mt-4"></div>
     <div id="decision-date" class="text-xs text-slate-400 mt-3"></div>
   </div>
-  <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl xl:min-w-[340px]">
+  <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl min-w-0 h-full">
     <div class="text-xs text-slate-400 uppercase tracking-wider">Répartition de votre prochain versement</div>
     <div id="alloc-list" class="mt-3 space-y-2"></div>
-    <div id="alloc-note" class="text-xs text-slate-500 mt-3"></div>
+    <div id="alloc-note" class="text-xs text-slate-500 mt-4 space-y-1"></div>
   </div>
 </div>
 </section>
@@ -81,7 +81,7 @@
 <div class="flex flex-col lg:flex-row justify-between gap-4 mb-5">
 <div>
 <h3 class="text-lg font-bold"><i class="fa-solid fa-ranking-star text-indigo-400 mr-2"></i>Rotation offensive <span id="rotation-count" class="text-xs font-normal text-slate-400 ml-2"></span></h3>
-<p class="text-xs text-slate-400 mt-1">Le score cherche une hausse réelle et récente, pas seulement une forte performance passée. <span id="ref-decision-label"></span></p>
+<p class="text-xs text-slate-400 mt-1">Seuls les actifs à acheter ou à vendre sont affichés ; la liste complète figure plus bas. <span id="ref-decision-label"></span></p>
 </div>
 <div class="text-xs bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
 <b>Score /100 :</b> 35% momentum · 25% tendance · 20% accélération · 20% force relative
@@ -130,7 +130,7 @@
 <b>BUY</b> = momentum positif + tendance confirmée + accélération/force relative suffisantes.
 <b>WATCH</b> = actif intéressant mais retournement encore incomplet.
 <b>EXCLU</b> = dynamique trop dégradée.
-Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous MM200.<br><b class="text-rose-300">VENDRE</b> = l'actif était BUY à la dernière décision et ne l'est plus. <b class="text-emerald-300">NOUVEAU</b> = devenu BUY depuis la dernière décision.<br>Répartition : seuls les 10 actifs les mieux notés sont éligibles ; un seul actif par classe (le mieux noté) ; chaque catégorie pèse proportionnellement au score de son meilleur actif ; les catégories « secondaires » et le bitcoin sont plafonnés à 10 % de la part investie, catégorie entière. Le score est relatif à l'ensemble des actifs testés.
+Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous MM200.<br><b class="text-rose-300">VENDRE</b> = l'actif était BUY à la dernière décision et ne l'est plus. <b class="text-emerald-300">NOUVEAU</b> = devenu BUY depuis la dernière décision.<br>Répartition : le cœur (SP500 ou CW8, le mieux noté) reçoit une part selon son score ; l'or, les matières premières et le bitcoin complètent selon leur score (bitcoin 10 % max) ; les actifs secondaires (score ≥ 80, 1 à 3 selon la force des principales, 20 % max) viennent en dernier ; le reliquat va au cœur. Les canaris fixent seuls la part investie. Le score est relatif à l'ensemble des actifs testés.
 </p>
 </section>
 
@@ -368,6 +368,18 @@ const cats=()=>({...DEFAULT_CATS,...(CONFIG.categories||{})});
 const catOf=x=>x.category??DEFAULT_CATEGORY[x.id]??"AUTRE";
 const catInfo=c=>cats()[c]||{label:c,short:c,cap:1};
 const TOP_N=()=>CONFIG.displayTop||10;
+const DEFAULT_RULES={
+  coeur:{categorie:"ACT_DEV",paliers:[{min:90,part:70},{min:80,part:60},{min:70,part:40}],reliquatAuCoeur:true},
+  complements:{categories:["OR","MP","BTC"],paliers:[{min:90,part:15},{min:80,part:10},{min:70,part:5}],plafondsParActif:{BTC:10},plafondTotal:30},
+  secondaires:{categories:["ACT_SEC","MP_SEC","OR_SEC"],scoreMin:80,scoreDeuxiemeActif:90,
+    fortes:{coeurMin:80,complementsMin:80,nbComplements:2,budgetMax:5,nbMax:1},
+    moyennes:{budgetMax:10,nbMax:2},
+    faibles:{coeurSous:70,aucunComplementMin:80,budgetMax:20,nbMax:3}},
+  exclusionsSiCoeur:["MAGS"],
+  familles:{EM_WORLD:"EM",EM_ASIA:"EM",OIL:"ENERGIE",NEW_ENERGY:"ENERGIE",URANIUM:"ENERGIE",GOLD_MINERS:"MINIERS",SILVER_MINERS:"MINIERS"}
+};
+const RULES=()=>({...DEFAULT_RULES,...(CONFIG.regles||{})});
+const pf=v=>Number.isInteger(v)?String(v):v.toFixed(1).replace(".",",");
 const TOP_CLASSES=TOP_N;
 function topClassSet(cur){          // cur.off est trié par score décroissant : 1re apparition = meilleur score de la classe
   const seen=[];
@@ -421,41 +433,105 @@ function prevDecision(){
 }
 
 // Répartition du versement : 1 actif par doublon, plafonds, reste proportionnel au score
+// Répartition du budget d'achat selon les règles (cœur > compléments > secondaires > reliquat au cœur)
 function allocate(cur){
-  const exposure=(cur.actions??0)/100;
-  const top=cur.off.slice(0,TOP_N());                        // seuls les 10 actifs les mieux notés sont éligibles
-  const seenClass={}, kept=[], dropped=[];
-  for(const o of top){
-    if(o.signal!=="BUY") continue;
-    const c=classOf(o.x);
-    if(seenClass[c]){ dropped.push({o,by:seenClass[c]}); continue; }   // même sous-classe : on garde le mieux noté
-    seenClass[c]=o; kept.push(o);
+  const R=RULES(), exposure=(cur.actions??0)/100;
+  const buy=cur.off.filter(o=>o.signal==="BUY");          // trié par score décroissant
+  const why={}, notes=[], sc=o=>o.m.final.toFixed(1);
+  const tier=(score,paliers)=>{ for(const p of paliers) if(score>=p.min) return p.part; return 0; };
+
+  // 1) Cœur : meilleur actif BUY de la catégorie « actions développées »
+  const coreList=buy.filter(o=>catOf(o.x)===R.coeur.categorie), core=coreList[0]||null;
+  coreList.slice(1).forEach(o=>why[o.x.id]=`cœur : ${core.x.id} est mieux noté`);
+  const corePart=core?tier(core.m.final,R.coeur.paliers):0;
+
+  // 2) Compléments : meilleur actif BUY de chaque catégorie (or, matières premières, bitcoin)
+  const comps=[], minTier=R.complements.paliers[R.complements.paliers.length-1].min;
+  for(const c of R.complements.categories){
+    const l=buy.filter(o=>catOf(o.x)===c); if(!l.length) continue;
+    l.slice(1).forEach(o=>why[o.x.id]=`${l[0].x.id} est mieux noté dans la catégorie`);
+    const o=l[0]; let part=tier(o.m.final,R.complements.paliers);
+    const cap=R.complements.plafondsParActif&&R.complements.plafondsParActif[o.x.id]; if(cap!=null) part=Math.min(part,cap);
+    if(part>0) comps.push({o,part}); else why[o.x.id]=`score ${sc(o)} < ${minTier} : trop faible pour compléter`;
   }
-  const byCat=new Map();
-  for(const o of kept){ const c=catOf(o.x); if(!byCat.has(c)) byCat.set(c,[]); byCat.get(c).push(o); }
-  // poids de chaque catégorie ∝ meilleur score de la catégorie ; plafond = part maximale de la catégorie ENTIÈRE
-  const catList=[...byCat.entries()].map(([c,l])=>({c,l,score:Math.max(...l.map(o=>o.m.final)),cap:catInfo(c).cap??1}));
-  const wCat=new Map(); let free=catList.slice(), remaining=1;
-  while(free.length){
-    const sum=free.reduce((a,z)=>a+z.score,0);
-    const over=free.filter(z=>remaining*z.score/sum>z.cap+1e-9);
-    if(!over.length){ free.forEach(z=>wCat.set(z.c,remaining*z.score/sum)); remaining=0; break; }
-    over.forEach(z=>{ wCat.set(z.c,z.cap); remaining-=z.cap; });
-    free=free.filter(z=>!over.includes(z));
+  let compTot=comps.reduce((a,c)=>a+c.part,0);
+  if(compTot>R.complements.plafondTotal){ const k=R.complements.plafondTotal/compTot; comps.forEach(c=>c.part*=k); compTot=R.complements.plafondTotal; }
+
+  // 3) Secondaires : budget et nombre selon la force des principales
+  const S=R.secondaires, coreScore=core?core.m.final:0;
+  const strong=comps.filter(c=>c.o.m.final>=S.fortes.complementsMin).length;
+  let level="moyennes";
+  if(coreScore>=S.fortes.coeurMin && strong>=S.fortes.nbComplements) level="fortes";
+  else if(coreScore<S.faibles.coeurSous && strong===0) level="faibles";
+  const lv=S[level];
+  const excl=new Set(core?(R.exclusionsSiCoeur||[]):[]);
+  const famOf=x=>(R.familles&&R.familles[classOf(x)])||("C:"+classOf(x));
+  const seenFam={}, cands=[];
+  for(const o of buy.filter(o=>S.categories.includes(catOf(o.x)))){
+    if(o.m.final<S.scoreMin){ why[o.x.id]=`score ${sc(o)} < ${S.scoreMin} (seuil des secondaires)`; continue; }
+    if(excl.has(o.x.id)){ why[o.x.id]=`exclu : déjà dans ${core.x.id}`; continue; }
+    const f=famOf(o.x);
+    if(seenFam[f]){ why[o.x.id]=`même ${R.familles&&R.familles[classOf(o.x)]?"famille":"classe"} que ${seenFam[f].x.id}`; continue; }
+    seenFam[f]=o; cands.push(o);
   }
-  const items=[];
-  for(const z of catList){                                    // au sein d'une catégorie : réparti ∝ score
-    const tot=z.l.reduce((a,o)=>a+o.m.final,0);
-    z.l.forEach(o=>items.push({id:o.x.id,v:100*exposure*(wCat.get(z.c)||0)*o.m.final/tot}));
+  let n=cands.length?1:0;
+  if(cands.length>=2 && cands[1].m.final>=S.scoreDeuxiemeActif) n=2;
+  if(cands.length>=3 && cands[2].m.final>=S.scoreDeuxiemeActif && level==="faibles") n=3;
+  n=Math.min(n,lv.nbMax);
+  const secBudget=cands.length?Math.max(0,Math.min(lv.budgetMax,100-corePart-compTot)):0;   // jamais plus de 100 % au total
+  const sec=secBudget>0?cands.slice(0,n):[];
+  if(secBudget<=0) cands.forEach(o=>why[o.x.id]="non retenu : le budget des actifs principaux est déjà complet");
+  else cands.slice(n).forEach(o=>why[o.x.id]=`non retenu : un 2e actif secondaire exige un score ≥ ${S.scoreDeuxiemeActif}`);
+
+  // parts en % du budget d'achat
+  const parts=new Map();
+  if(core&&corePart>0) parts.set(core.x.id,corePart);
+  comps.forEach(c=>parts.set(c.o.x.id,c.part));
+  const secSum=sec.reduce((a,o)=>a+o.m.final,0);
+  if(secBudget>0) sec.forEach(o=>parts.set(o.x.id,secBudget*o.m.final/secSum));
+  let reliquat=100-[...parts.values()].reduce((a,v)=>a+v,0);
+
+  // 4) Reliquat : au cœur s'il est BUY ; sinon réparti ∝ score entre les actifs retenus (dans la limite des plafonds)
+  if(reliquat>0.001){
+    if(core){ parts.set(core.x.id,(parts.get(core.x.id)||0)+reliquat); notes.push(`Reliquat de ${pf(Math.round(reliquat*10)/10)} % reporté sur ${core.x.id}`); reliquat=0; }
+    else{
+      const maxTier=R.complements.paliers[0].part, secCap=Math.max(S.fortes.budgetMax,S.moyennes.budgetMax,S.faibles.budgetMax);
+      const groups=comps.map(c=>({ids:[c.o.x.id],score:c.o.m.final,cap:(R.complements.plafondsParActif&&R.complements.plafondsParActif[c.o.x.id])??maxTier,cur:c.part}));
+      if(sec.length) groups.push({ids:sec.map(o=>o.x.id),score:Math.max(...sec.map(o=>o.m.final)),cap:secCap,cur:secBudget,sec:true});
+      let free=groups.filter(g=>g.cap-g.cur>1e-9), rest=reliquat;
+      while(free.length&&rest>1e-9){
+        const sum=free.reduce((a,g)=>a+g.score,0);
+        const over=free.filter(g=>rest*g.score/sum>g.cap-g.cur+1e-9);
+        if(!over.length){ free.forEach(g=>g.add=rest*g.score/sum); rest=0; free.forEach(g=>g.cur+=g.add); break; }
+        over.forEach(g=>{ g.add=g.cap-g.cur; g.cur=g.cap; rest-=g.add; });
+        free=free.filter(g=>!over.includes(g));
+      }
+      for(const g of groups){
+        if(g.sec){ const t=sec.reduce((a,o)=>a+o.m.final,0); sec.forEach(o=>parts.set(o.x.id,g.cur*o.m.final/t)); }
+        else parts.set(g.ids[0],g.cur);
+      }
+      reliquat=Math.max(0,rest);
+      if(reliquat>0.001) notes.push(`Aucun actif éligible pour ${pf(Math.round(reliquat*10)/10)} % du budget : conservé en cash`);
+    }
   }
-  const cashRaw=100-items.reduce((a,i)=>a+i.v,0);
-  const all=[...items,{id:"__cash",v:cashRaw}];
-  all.forEach(i=>i.f=Math.floor(i.v));
-  let left=100-all.reduce((a,i)=>a+i.f,0);
-  [...all].sort((a,b)=>(b.v-b.f)-(a.v-a.f)).slice(0,left).forEach(i=>i.f++);
-  const pct={}; all.forEach(i=>{ if(i.id!=="__cash") pct[i.id]=i.f; });
-  const catPct={}; kept.forEach(o=>{ const c=catOf(o.x); catPct[c]=(catPct[c]||0)+(pct[o.x.id]||0); });
-  return {pct,catPct,cash:all.find(i=>i.id==="__cash").f,dropped,kept,exposure,top};
+
+  // notes explicatives
+  if(exposure>0){
+    notes.unshift(core?`Cœur : ${core.x.id} (${sc(core)}) → ${corePart} % du budget`:"Cœur : aucun actif BUY dans les actions développées");
+    if(comps.length) notes.splice(1,0,"Compléments : "+comps.map(c=>`${c.o.x.id} (${sc(c.o)}) ${pf(Math.round(c.part*10)/10)} %`).join(", "));
+    notes.splice(comps.length?2:1,0,sec.length?`Principales ${level} : secondaires ${pf(Math.round(secBudget*10)/10)} % max, ${sec.length} actif(s) : ${sec.map(o=>o.x.id).join(", ")}`:`Principales ${level} : aucun actif secondaire retenu`);
+  }else{ notes.length=0; notes.push("Aucun achat offensif tant qu'un canari au moins n'est pas repassé au vert."); }
+
+  // pourcentages du versement (part investie × canaris), arrondis au 0,5 % le plus proche
+  const U=0.5, all=[...parts].map(([id,pt])=>({id,v:exposure*pt}));
+  all.push({id:"__cash",v:100-all.reduce((a,i)=>a+i.v,0)});
+  all.forEach(i=>i.f=Math.floor(i.v/U+1e-9));
+  const left=Math.round(100/U)-all.reduce((a,i)=>a+i.f,0);
+  [...all].sort((a,b)=>(b.v/U-b.f)-(a.v/U-a.f)).slice(0,Math.max(0,left)).forEach(i=>i.f++);
+  const pct={}; all.forEach(i=>{ if(i.id!=="__cash"&&i.f>0) pct[i.id]=i.f*U; });
+  const kept=cur.off.filter(o=>pct[o.x.id]>0);
+  const catPct={}; kept.forEach(o=>{ const c=catOf(o.x); catPct[c]=(catPct[c]||0)+pct[o.x.id]; });
+  return {pct,catPct,cash:all.find(i=>i.id==="__cash").f*U,kept,exposure,why,notes,level,core};
 }
 
 const PRODUCTS={
@@ -579,20 +655,13 @@ function render(records){
   let list="";
   for(const [c,info] of Object.entries(cats())){
     const tot=alloc.catPct[c]; if(!tot) continue;
-    const members=alloc.kept.filter(o=>catOf(o.x)===c&&alloc.pct[o.x.id]>0);
-    list+=`<div><div class="flex justify-between items-baseline"><span class="font-bold text-indigo-300">${info.short||info.label}</span><span class="text-lg font-extrabold text-emerald-400">${tot} %</span></div>`
-      +members.map(o=>`<div class="flex justify-between text-xs text-slate-400 pl-3"><span><span class="font-mono text-slate-300">${o.x.id}</span> · ${classLabel(classOf(o.x))}</span><span>${alloc.pct[o.x.id]} %</span></div>`).join("")+`</div>`;
+    const members=alloc.kept.filter(o=>catOf(o.x)===c);
+    list+=`<div><div class="flex justify-between items-baseline"><span class="font-bold text-indigo-300">${info.short||info.label}</span><span class="text-lg font-extrabold text-emerald-400">${pf(tot)} %</span></div>`
+      +members.map(o=>`<div class="flex justify-between text-xs text-slate-400 pl-3"><span><span class="font-mono text-slate-300">${o.x.id}</span> · ${classLabel(classOf(o.x))}</span><span>${pf(alloc.pct[o.x.id])} %</span></div>`).join("")+`</div>`;
   }
-  list+=`<div class="flex justify-between items-center border-t border-slate-700 pt-2"><span class="font-bold text-slate-300">Cash</span><span class="text-lg font-extrabold text-slate-300">${alloc.cash} %</span></div>`;
+  list+=`<div class="flex justify-between items-center border-t border-slate-700 pt-2"><span class="font-bold text-slate-300">Cash</span><span class="text-lg font-extrabold text-slate-300">${pf(alloc.cash)} %</span></div>`;
   $("alloc-list").innerHTML=list;
-  const notes=[];
-  if(alloc.exposure>0){
-    alloc.dropped.forEach(d=>notes.push(`${d.o.x.id} non retenu : même classe que ${d.by.x.id}`));
-    for(const [c,info] of Object.entries(cats())){
-      if((info.cap??1)<1 && alloc.catPct[c] && Math.abs(alloc.catPct[c]-100*alloc.exposure*info.cap)<1.01) notes.push(`${info.short||info.label} plafonné à ${Math.round(info.cap*100)} % de la part investie`);
-    }
-  }else notes.push("Aucun achat offensif tant qu'un canari au moins n'est pas repassé au vert.");
-  $("alloc-note").textContent=notes.join(" · ");
+  $("alloc-note").innerHTML=alloc.notes.map(n=>`<div>${n}</div>`).join("");
 
   // ── Ventes / achats : positions détenues à la décision précédente vs signaux actuels
   const sells=[], newBuys=[], switches=[], outTop=[];
@@ -601,34 +670,30 @@ function render(records){
     if(o.signal!=="BUY") sells.push({o,refSig:"BUY"});
     else if(!alloc.kept.includes(o)){
       const rep=alloc.kept.find(k=>classOf(k.x)===classOf(o.x));
-      if(rep) switches.push({from:o,to:rep}); else outTop.push(o);
+      if(rep) switches.push({from:o,to:rep}); else outTop.push(o);   // toujours BUY mais plus retenu
     }
   }
   if(refAlloc.exposure>0) alloc.kept.forEach(o=>{ if(!held.has(o.x.id)&&alloc.pct[o.x.id]>0) newBuys.push(o); });
 
-  // ── Tableau de rotation : les 10 actifs les mieux notés
+  // ── Tableau de rotation : uniquement les actifs à acheter et à vendre
   $("ref-decision-label").textContent=`Changements comparés à la décision du ${fdate(dd)}.`;
-  const rows=cur.off.slice(0,TOP_N()).map(o=>({o}));
-  for(const sl of sells){ if(!rows.some(r=>r.o===sl.o)) rows.push({o:sl.o,extra:true}); }
-  $("rotation-count").textContent=`${TOP_N()} meilleurs actifs sur ${cur.off.length} testés`;
-  $("asset-body").innerHTML="";
-  rows.forEach((r,i)=>{
-    const o=r.o;
-    const sell=sells.some(z=>z.o===o);
-    const p=alloc.pct[o.x.id]||0, dup=alloc.dropped.find(d=>d.o===o);
+  const sellSet=new Set(sells.map(z=>z.o));
+  const rows=cur.off.filter(o=>(alloc.pct[o.x.id]||0)>0||sellSet.has(o));        // ordre = score décroissant
+  $("rotation-count").textContent=`${alloc.kept.length} à acheter · ${sells.length} à vendre · ${cur.off.length} actifs testés`;
+  $("asset-body").innerHTML=rows.length?"":`<tr><td colspan="7" class="py-6 px-3 text-center text-slate-400">Aucun actif à acheter ni à vendre pour le moment.</td></tr>`;
+  rows.forEach(o=>{
+    const sell=sellSet.has(o), p=alloc.pct[o.x.id]||0, rank=cur.off.indexOf(o)+1;
     const sc=o.signal==="BUY"?"text-emerald-400 bg-emerald-500/10 border-emerald-500/30":o.signal==="WATCH"?"text-amber-400 bg-amber-500/10 border-amber-500/30":"text-rose-400 bg-rose-500/10 border-rose-500/30";
     let action="<span class='text-slate-500'>—</span>";
     if(sell) action=`<div class="inline-block bg-rose-600 text-white font-extrabold px-3 py-1.5 rounded-lg animate-pulse">🔴 VENDRE</div><div class="text-xs text-rose-300 mt-1">Signal changé : BUY → ${o.signal}</div>`;
     else if(p>0) action=`<span class="text-emerald-300 font-bold">Acheter</span>${!held.has(o.x.id)&&refAlloc.exposure>0?` <span class="text-xs bg-emerald-500 text-slate-900 font-extrabold px-2 py-0.5 rounded ml-1">NOUVEAU</span>`:""}`;
-    else if(dup) action=`<span class="text-xs text-slate-400">Même classe que ${dup.by.x.id} (mieux noté)</span>`;
-    else if(o.signal==="BUY") action=`<span class="text-xs text-slate-400">${alloc.exposure===0?"BUY, mais exposition à 0 %":"BUY, poids inférieur à 1 %"}</span>`;
-    $("asset-body").innerHTML+=`<tr class="${sell?"bg-rose-950/40":o.signal==="BUY"?"bg-emerald-950/20":""}">
-      <td class="py-3 px-3 font-bold">${r.extra?"—":"#"+(i+1)}</td>
+    $("asset-body").innerHTML+=`<tr class="${sell?"bg-rose-950/40":"bg-emerald-950/20"}">
+      <td class="py-3 px-3 font-bold">#${rank}</td>
       <td class="py-3 px-3"><div class="font-mono font-bold text-indigo-300">${o.x.id}</div><div class="text-xs text-slate-500">${o.x.name}</div><div class="text-[11px] text-slate-500">classe : ${classLabel(classOf(o.x))}</div></td>
       <td class="py-3 px-3 text-sm text-slate-300">${catInfo(catOf(o.x)).short||catInfo(catOf(o.x)).label}</td>
       <td class="py-3 px-3 text-right font-extrabold text-lg">${o.m.final.toFixed(1)}</td>
       <td class="py-3 px-3 text-center"><span class="border px-2.5 py-1 rounded-full text-xs font-bold ${sc}">${o.signal}</span></td>
-      <td class="py-3 px-3 text-right text-xl font-extrabold ${p>0?"text-emerald-400":"text-slate-600"}">${p>0?p+" %":"—"}</td>
+      <td class="py-3 px-3 text-right text-xl font-extrabold ${p>0?"text-emerald-400":"text-slate-600"}">${p>0?pf(p)+" %":"—"}</td>
       <td class="py-3 px-3">${action}</td></tr>`;
   });
 
@@ -636,9 +701,9 @@ function render(records){
   const missing=records.filter(r=>isOff(r.id)&&!r.series);
   $("all-count").textContent=`${cur.off.length} calculés sur ${cur.off.length+missing.length}`;
   let allRows=cur.off.map((o,i)=>{
-    const p=alloc.pct[o.x.id]||0, dup=alloc.dropped.find(d=>d.o===o), sell=sells.some(z=>z.o===o);
+    const p=alloc.pct[o.x.id]||0, sell=sells.some(z=>z.o===o);
     const sc=o.signal==="BUY"?"text-emerald-400":o.signal==="WATCH"?"text-amber-400":"text-rose-400";
-    const status=sell?'<b class="text-rose-400">VENDRE</b>':p>0?`<span class="text-emerald-300">retenu · ${p} %</span>`:dup?`<span class="text-slate-500">même classe que ${dup.by.x.id}</span>`:(o.signal==="BUY"&&i>=TOP_N())?'<span class="text-slate-500">BUY, hors des 10 meilleurs</span>':"";
+    const status=sell?'<b class="text-rose-400">VENDRE</b>':p>0?`<span class="text-emerald-300">retenu · ${pf(p)} %</span>`:alloc.why[o.x.id]?`<span class="text-slate-500">${alloc.why[o.x.id]}</span>`:(o.signal==="BUY"?'<span class="text-slate-500">BUY, non retenu par la stratégie</span>':"");
     return `<tr><td class="py-1.5 px-3 text-slate-500">${i+1}</td><td class="py-1.5 px-3">${catInfo(catOf(o.x)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${o.x.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(o.x))}</span></td><td class="py-1.5 px-3 text-right font-bold">${o.m.final.toFixed(1)}</td><td class="py-1.5 px-3 text-center font-bold ${sc}">${o.signal}</td><td class="py-1.5 px-3 text-xs">${status}</td></tr>`;
   }).join("");
   allRows+=missing.map(m=>`<tr class="opacity-70"><td class="py-1.5 px-3 text-slate-600">—</td><td class="py-1.5 px-3">${catInfo(catOf(m)).short}</td><td class="py-1.5 px-3"><span class="font-mono text-indigo-300">${m.id}</span> <span class="text-xs text-slate-500">${classLabel(classOf(m))} · ${m.ticker}</span></td><td class="py-1.5 px-3 text-right text-slate-600">—</td><td class="py-1.5 px-3 text-center text-slate-600">—</td><td class="py-1.5 px-3 text-xs text-rose-400">Pas de cours : ${m.error}</td></tr>`).join("");
@@ -653,7 +718,7 @@ function render(records){
       ${sells.length?`<div class="text-rose-300 font-extrabold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i>SIGNAL CHANGÉ — À VENDRE : ${sells.map(z=>`<span class="font-mono">${z.o.x.id}</span> (${catInfo(catOf(z.o.x)).short}, BUY → ${z.o.signal})`).join(", ")}</div>`:""}
       ${newBuys.length?`<div class="text-emerald-300 font-bold mt-1">Nouveau signal BUY : ${newBuys.map(o=>`${o.x.id} (${catInfo(catOf(o.x)).short})`).join(", ")}</div>`:""}
       ${switches.length?`<div class="text-amber-300 text-sm mt-1">Meilleur actif de la classe changé : ${switches.map(z=>`${classLabel(classOf(z.from.x))} — ${z.from.x.id} → ${z.to.x.id} (optionnel)`).join(" ; ")}</div>`:""}
-      ${outTop.length?`<div class="text-amber-300 text-sm mt-1">Sorti des 10 meilleurs (toujours BUY, ne plus renforcer) : ${outTop.map(o=>o.x.id).join(", ")}</div>`:""}
+      ${outTop.length?`<div class="text-amber-300 text-sm mt-1">Plus retenu par la stratégie (toujours BUY, ne plus renforcer) : ${outTop.map(o=>o.x.id).join(", ")}</div>`:""}
       <div class="text-xs text-slate-400 mt-1">Comparaison avec la décision du ${fdate(dd)}.</div></div>`;
   }else{ box.className="hidden"; box.innerHTML=""; }
 
