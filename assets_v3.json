@@ -165,14 +165,6 @@
       "category": "ACT_SEC"
     },
     {
-      "id": "COMM",
-      "ticker": "COMM.DE",
-      "name": "iShares Diversified Commodity Swap UCITS – COMM",
-      "currency": "EUR",
-      "class": "COMMO",
-      "category": "MP"
-    },
-    {
       "id": "XOP",
       "ticker": "XOP",
       "name": "SPDR S&P Oil & Gas Exploration & Production – XOP",
