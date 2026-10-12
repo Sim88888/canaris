@@ -134,6 +134,57 @@ Un actif ne peut pas être BUY si son cours est sous MM200 ou si MM50 est sous M
 </p>
 </section>
 
+<section id="manage-section" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-lg">
+<h3 class="text-lg font-bold"><i class="fa-solid fa-sliders text-indigo-400 mr-2"></i>Gérer les actifs suivis</h3>
+<p class="text-xs text-slate-400 mt-1">Ajoute ou retire un actif de la liste (fichier <span class="font-mono">assets_v3.json</span> de votre dépôt GitHub). Les cours d'un nouvel actif sont récupérés par la mise à jour automatique, quelques minutes après l'enregistrement.</p>
+<div class="grid lg:grid-cols-2 gap-5 mt-5">
+  <div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">
+    <div class="font-semibold text-slate-200 mb-3"><i class="fa-solid fa-trash-can text-rose-400 mr-2"></i>Supprimer un actif</div>
+    <label class="text-xs text-slate-400" for="mg-del">Actif à retirer de la liste</label>
+    <select id="mg-del" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm"></select>
+    <button id="mg-del-btn" type="button" class="mt-3 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-trash-can mr-1"></i>Supprimer</button>
+    <div class="text-xs text-slate-500 mt-3">L'actif n'est plus suivi ni calculé. Les deux canaris ne peuvent pas être supprimés ici.</div>
+  </div>
+  <div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4">
+    <div class="font-semibold text-slate-200 mb-3"><i class="fa-solid fa-circle-plus text-emerald-400 mr-2"></i>Ajouter un actif</div>
+    <div class="grid sm:grid-cols-2 gap-3 text-sm">
+      <div><label class="text-xs text-slate-400" for="mg-ticker">Ticker Yahoo Finance *</label>
+        <input id="mg-ticker" type="text" placeholder="ex. VWCE.DE, NVDA, BTC-USD" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
+      <div><label class="text-xs text-slate-400" for="mg-id">Identifiant court *</label>
+        <input id="mg-id" type="text" placeholder="ex. VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 font-mono"></div>
+      <div class="sm:col-span-2"><label class="text-xs text-slate-400" for="mg-name">Nom affiché *</label>
+        <input id="mg-name" type="text" placeholder="ex. Vanguard FTSE All-World – VWCE" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
+      <div><label class="text-xs text-slate-400" for="mg-cur">Devise de cotation</label>
+        <select id="mg-cur" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"><option value="EUR">EUR</option><option value="USD">USD (converti en EUR)</option></select></div>
+      <div><label class="text-xs text-slate-400" for="mg-cat">Catégorie</label>
+        <select id="mg-cat" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></select></div>
+      <div><label class="text-xs text-slate-400" for="mg-class">Classe d'actifs (un seul actif acheté par classe)</label>
+        <select id="mg-class" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></select></div>
+      <div id="mg-newclass-box" class="hidden"><label class="text-xs text-slate-400" for="mg-newclass">Nom de la nouvelle classe</label>
+        <input id="mg-newclass" type="text" placeholder="ex. Santé" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2"></div>
+      <label class="sm:col-span-2 flex items-center gap-2 text-xs text-slate-400"><input id="mg-us" type="checkbox"> ETF coté aux États-Unis (en principe non accessible aux particuliers de l'UE : sert de signal)</label>
+    </div>
+    <button id="mg-add-btn" type="button" class="mt-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-circle-plus mr-1"></i>Ajouter l'actif</button>
+    <div class="text-xs text-slate-500 mt-3">La catégorie détermine le rôle dans les règles d'achat (cœur, compléments ou secondaires). Le ticker doit exister sur Yahoo Finance : sinon l'actif apparaîtra avec « Pas de cours ».</div>
+  </div>
+</div>
+<div class="bg-slate-900/40 border border-slate-700 rounded-xl p-4 mt-5">
+  <div class="font-semibold text-slate-200 mb-1"><i class="fa-brands fa-github mr-2"></i>Connexion à GitHub</div>
+  <p class="text-xs text-slate-400">Pour enregistrer directement, créez sur GitHub un <b>jeton à granularité fine</b> (Settings › Developer settings › Fine-grained tokens), limité à <b>ce seul dépôt</b>, avec la permission <b>Contents : Read and write</b>. Collez-le ci-dessous : il reste dans <b>ce navigateur</b> uniquement (il n'est écrit nulle part dans la page ni dans le dépôt). Sans jeton, le fichier <span class="font-mono">assets_v3.json</span> modifié est téléchargé : à déposer ensuite dans le dépôt.</p>
+  <div class="grid sm:grid-cols-3 gap-3 mt-3 text-sm">
+    <div><label class="text-xs text-slate-400" for="mg-repo">Dépôt (propriétaire/nom)</label>
+      <input id="mg-repo" type="text" placeholder="pseudo/canaris" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 font-mono"></div>
+    <div class="sm:col-span-2"><label class="text-xs text-slate-400" for="mg-token">Jeton GitHub <span id="mg-token-state" class="text-emerald-400"></span></label>
+      <input id="mg-token" type="password" placeholder="github_pat_…" autocomplete="off" class="mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 font-mono"></div>
+  </div>
+  <div class="flex flex-wrap items-center gap-4 mt-3 text-xs text-slate-400">
+    <label class="flex items-center gap-2"><input id="mg-remember" type="checkbox" checked> Mémoriser le jeton dans ce navigateur</label>
+    <button id="mg-forget" type="button" class="text-rose-300 hover:underline">Oublier le jeton</button>
+  </div>
+</div>
+<div id="mg-msg" class="hidden"></div>
+</section>
+
 </main>
 
 <footer class="border-t border-slate-700 bg-slate-800 py-5 text-center text-xs text-slate-500">
@@ -182,6 +233,7 @@ function loadData(){
         const r=await fetch("assets_v3.json?v="+Date.now(),{cache:"no-store"});
         if(r.ok){ const c=await r.json(); if(Array.isArray(c.offensive)&&Array.isArray(c.canaries)) CONFIG=c; }
       }catch(e){}
+      if(window.__cfgOverride) CONFIG=window.__cfgOverride;   // modification faite dans cette session : Pages peut encore servir l'ancien fichier
       sc.remove(); res(!!BATCH);
     };
     sc.onerror=()=>{sc.remove();res(false);};
@@ -728,6 +780,160 @@ function render(records){
   $("above200").textContent=`${off.filter(x=>x.m.last>x.m.mm200).length}/${off.length}`;
   $("goldencross").textContent=`${off.filter(x=>x.m.mm50>x.m.mm200).length}/${off.length}`;
   $("accelerating").textContent=`${off.filter(x=>x.m.acc>0).length}/${off.length}`;
+  renderManager();
+}
+
+
+// ───────── Module : ajouter / supprimer un actif (modifie assets_v3.json dans le dépôt GitHub) ─────────
+const GH_FILE="assets_v3.json";
+const lsGet=k=>{ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } };
+const lsSet=(k,v)=>{ try{ if(v) localStorage.setItem(k,v); else localStorage.removeItem(k); }catch(e){} };
+const b64d=t=>decodeURIComponent(escape(atob(t.replace(/\s/g,""))));
+const b64e=t=>btoa(unescape(encodeURIComponent(t)));
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mgRepo=()=>{ const v=($("mg-repo").value||"").trim().replace(/^https?:\/\/github\.com\//,"").replace(/\/+$/,""); return /^[\w.-]+\/[\w.-]+$/.test(v)?v:""; };
+const mgToken=()=>lsGet("canaris_gh_token")||$("mg-token").value.trim();
+function detectRepo(){
+  const parts=location.pathname.split("/").filter(Boolean);
+  return location.hostname.endsWith(".github.io")&&parts.length?location.hostname.split(".")[0]+"/"+parts[0]:"";
+}
+function mgMsg(html,kind){
+  const el=$("mg-msg");
+  el.className="mt-4 text-sm rounded-lg px-4 py-3 border "+(kind==="ok"?"bg-emerald-500/10 border-emerald-500/40 text-emerald-300":kind==="err"?"bg-rose-500/10 border-rose-500/40 text-rose-300":"bg-slate-900/60 border-slate-700 text-slate-300");
+  el.innerHTML=html;
+}
+async function ghApi(method,body){
+  const r=await fetch(`https://api.github.com/repos/${mgRepo()}/contents/${GH_FILE}`,{
+    method,cache:"no-store",
+    headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+mgToken(),...(body?{"Content-Type":"application/json"}:{})},
+    body:body?JSON.stringify(body):undefined});
+  if(!r.ok){
+    let m=""; try{ m=(await r.json()).message||""; }catch(e){}
+    const hint=r.status===401?"Jeton invalide ou expiré."
+      :r.status===403?"Le jeton n'a pas le droit d'écrire (permission « Contents : Read and write ») ou la limite d'appels est atteinte."
+      :r.status===404?"Dépôt ou fichier introuvable : vérifiez « propriétaire/nom » et que le jeton a accès à ce dépôt."
+      :(r.status===409||r.status===422)?"Le fichier a changé entre-temps : réessayez."
+      :"Erreur GitHub.";
+    throw new Error(`${hint} (HTTP ${r.status}${m?" : "+m:""})`);
+  }
+  return r.json();
+}
+function downloadJson(cfg){
+  const a=document.createElement("a");
+  a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(cfg,null,2)+"\n");
+  a.download=GH_FILE; document.body.appendChild(a); a.click(); a.remove();
+}
+// applique une modification : directement sur GitHub si un jeton est fourni, sinon téléchargement du fichier modifié
+async function applyChange(mutate,summary){
+  const typed=$("mg-token").value.trim();
+  if(typed&&$("mg-remember").checked) lsSet("canaris_gh_token",typed);
+  if(mgRepo()) lsSet("canaris_gh_repo",mgRepo());
+  let cfg, mode, commitUrl="";
+  if(mgToken()&&mgRepo()){
+    mgMsg("Enregistrement sur GitHub…");
+    const f=await ghApi("GET");
+    cfg=JSON.parse(b64d(f.content));
+    mutate(cfg);                                  // validation : lève une erreur avant toute écriture
+    const res=await ghApi("PUT",{message:summary,content:b64e(JSON.stringify(cfg,null,2)+"\n"),sha:f.sha});
+    mode="github"; commitUrl=(res.commit&&res.commit.html_url)||"";
+  }else{
+    cfg=JSON.parse(JSON.stringify(CONFIG)); mutate(cfg); mode="download"; downloadJson(cfg);
+  }
+  window.__cfgOverride=cfg; CONFIG=cfg;
+  $("mg-token").value="";
+  await refresh();
+  return {mode,commitUrl};
+}
+const slug=t=>t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_+|_+$/g,"");
+function mutAdd(cfg,a){
+  const all=[...(cfg.canaries||[]),...(cfg.offensive||[])];
+  if(all.some(x=>x.id.toUpperCase()===a.id.toUpperCase())) throw new Error(`L'identifiant « ${a.id} » existe déjà.`);
+  if(all.some(x=>x.ticker.toUpperCase()===a.ticker.toUpperCase())) throw new Error(`Le ticker « ${a.ticker} » est déjà suivi.`);
+  cfg.classes=cfg.classes||{};
+  if(a.newClassLabel&&!cfg.classes[a.cls]) cfg.classes[a.cls]=a.newClassLabel;
+  const o={id:a.id,ticker:a.ticker,name:a.name,currency:a.currency,class:a.cls,category:a.category};
+  if(a.us) o.us=true;
+  cfg.offensive.push(o);
+}
+function mutDel(cfg,id){
+  const i=(cfg.offensive||[]).findIndex(x=>x.id===id);
+  if(i<0) throw new Error(`« ${id} » n'est plus dans la liste.`);
+  if(cfg.offensive.length<=1) throw new Error("Il doit rester au moins un actif.");
+  cfg.offensive.splice(i,1);
+}
+function mgDone(res,okText){
+  mgMsg(res.mode==="github"
+    ? `✅ ${okText} Enregistré sur GitHub${res.commitUrl?` (<a class="underline" target="_blank" rel="noopener" href="${esc(res.commitUrl)}">voir la modification</a>)`:""}. La mise à jour des cours démarre automatiquement (onglet Actions du dépôt) : un nouvel actif affiche « Pas de cours » jusqu'à la fin du traitement, quelques minutes.`
+    : `✅ ${okText} Le fichier <b>assets_v3.json</b> modifié a été téléchargé : déposez-le dans votre dépôt GitHub (Add file › Upload files) pour valider le changement.`,"ok");
+}
+let managerReady=false;
+function fillSelect(sel,fill){ const sig=fill.sig; if(sel.dataset.sig===sig) return; const keep=sel.value; sel.innerHTML=""; fill.build(sel); sel.dataset.sig=sig; if([...sel.options].some(o=>o.value===keep)) sel.value=keep; }
+function renderManager(){
+  if(!$("manage-section")) return;
+  const off=(CONFIG.offensive||[]).slice();
+  // liste déroulante de suppression, groupée par catégorie
+  fillSelect($("mg-del"),{sig:JSON.stringify(off.map(x=>[x.id,x.name,catOf(x)])),build:sel=>{
+    const ph=document.createElement("option"); ph.value=""; ph.textContent="— choisir un actif —"; sel.appendChild(ph);
+    for(const [c,info] of Object.entries(cats())){
+      const list=off.filter(x=>catOf(x)===c).sort((a,b)=>a.id.localeCompare(b.id)); if(!list.length) continue;
+      const g=document.createElement("optgroup"); g.label=info.short||info.label;
+      list.forEach(x=>{ const o=document.createElement("option"); o.value=x.id; o.textContent=`${x.id} · ${x.name}`; g.appendChild(o); });
+      sel.appendChild(g);
+    }
+    const others=off.filter(x=>!cats()[catOf(x)]);
+    if(others.length){ const g=document.createElement("optgroup"); g.label="Autres"; others.forEach(x=>{ const o=document.createElement("option"); o.value=x.id; o.textContent=`${x.id} · ${x.name}`; g.appendChild(o); }); sel.appendChild(g); }
+  }});
+  fillSelect($("mg-cat"),{sig:JSON.stringify(Object.entries(cats()).map(([k,v])=>[k,v.short||v.label])),build:sel=>{
+    Object.entries(cats()).forEach(([k,v])=>{ const o=document.createElement("option"); o.value=k; o.textContent=v.label||v.short||k; sel.appendChild(o); });
+  }});
+  const classes={...DEFAULT_CLASS_LABEL,...(CONFIG.classes||{})};
+  fillSelect($("mg-class"),{sig:JSON.stringify(classes),build:sel=>{
+    Object.entries(classes).sort((a,b)=>a[1].localeCompare(b[1],"fr")).forEach(([k,v])=>{ const o=document.createElement("option"); o.value=k; o.textContent=v; sel.appendChild(o); });
+    const n=document.createElement("option"); n.value="__new"; n.textContent="➕ Nouvelle classe…"; sel.appendChild(n);
+  }});
+  if(managerReady) return;
+  managerReady=true;
+  $("mg-repo").value=lsGet("canaris_gh_repo")||detectRepo();
+  const tokState=()=>{ $("mg-token-state").textContent=lsGet("canaris_gh_token")?"· enregistré dans ce navigateur":""; $("mg-token").placeholder=lsGet("canaris_gh_token")?"jeton enregistré (laisser vide pour le conserver)":"github_pat_…"; };
+  tokState();
+  $("mg-forget").addEventListener("click",()=>{ lsSet("canaris_gh_token",""); $("mg-token").value=""; tokState(); mgMsg("Jeton oublié sur ce navigateur.","info"); });
+  $("mg-class").addEventListener("change",()=>$("mg-newclass-box").classList.toggle("hidden",$("mg-class").value!=="__new"));
+  $("mg-id").addEventListener("input",()=>{ $("mg-id").dataset.touched="1"; });
+  $("mg-ticker").addEventListener("input",()=>{
+    if($("mg-id").dataset.touched==="1") return;
+    $("mg-id").value=$("mg-ticker").value.split(/[.=\-^]/)[0].toUpperCase().replace(/[^A-Z0-9_]/g,"");
+  });
+  const busy=b=>{ $("mg-add-btn").disabled=b; $("mg-del-btn").disabled=b; };
+  $("mg-del-btn").addEventListener("click",async()=>{
+    const id=$("mg-del").value;
+    if(!id){ mgMsg("Choisissez d'abord un actif dans la liste.","err"); return; }
+    const x=(CONFIG.offensive||[]).find(z=>z.id===id);
+    if(!confirm(`Supprimer « ${id} »${x?` (${x.name})`:""} de la liste des actifs suivis ?`)) return;
+    busy(true);
+    try{ const r=await applyChange(cfg=>mutDel(cfg,id),`Suppression de ${id}`); mgDone(r,`« ${esc(id)} » supprimé.`); $("mg-del").value=""; }
+    catch(e){ mgMsg("❌ "+esc(e.message),"err"); }
+    busy(false);
+  });
+  $("mg-add-btn").addEventListener("click",async()=>{
+    const ticker=$("mg-ticker").value.trim(), id=$("mg-id").value.trim().toUpperCase(), name=$("mg-name").value.replace(/[<>]/g,"").trim();
+    let cls=$("mg-class").value, newLabel="";
+    if(!ticker||!id||!name){ mgMsg("Renseignez au moins le ticker, l'identifiant et le nom.","err"); return; }
+    if(/\s/.test(ticker)){ mgMsg("Le ticker ne doit pas contenir d'espace.","err"); return; }
+    if(!/^[A-Z0-9_]+$/.test(id)){ mgMsg("L'identifiant ne peut contenir que des lettres, chiffres et _.","err"); return; }
+    if(cls==="__new"){
+      newLabel=$("mg-newclass").value.replace(/[<>]/g,"").trim();
+      if(!newLabel){ mgMsg("Saisissez le nom de la nouvelle classe.","err"); return; }
+      cls=slug(newLabel); if(!cls){ mgMsg("Nom de classe invalide.","err"); return; }
+    }
+    const a={ticker,id,name,currency:$("mg-cur").value,category:$("mg-cat").value,cls,newClassLabel:newLabel,us:$("mg-us").checked};
+    busy(true);
+    try{
+      const r=await applyChange(cfg=>mutAdd(cfg,a),`Ajout de ${id} (${ticker})`);
+      mgDone(r,`« ${esc(id)} » (${esc(ticker)}) ajouté.`);
+      ["mg-ticker","mg-id","mg-name","mg-newclass"].forEach(k=>$(k).value=""); $("mg-id").dataset.touched=""; $("mg-us").checked=false;
+    }catch(e){ mgMsg("❌ "+esc(e.message),"err"); }
+    busy(false);
+  });
 }
 
 function nextDecision(){
