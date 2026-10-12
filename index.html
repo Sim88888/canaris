@@ -792,7 +792,7 @@ const b64d=t=>decodeURIComponent(escape(atob(t.replace(/\s/g,""))));
 const b64e=t=>btoa(unescape(encodeURIComponent(t)));
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mgRepo=()=>{ const v=($("mg-repo").value||"").trim().replace(/^https?:\/\/github\.com\//,"").replace(/\/+$/,""); return /^[\w.-]+\/[\w.-]+$/.test(v)?v:""; };
-const mgToken=()=>lsGet("canaris_gh_token")||$("mg-token").value.trim();
+const mgToken=()=>$("mg-token").value.trim()||lsGet("canaris_gh_token");   // un jeton collé dans le champ prime sur celui mémorisé
 function detectRepo(){
   const parts=location.pathname.split("/").filter(Boolean);
   return location.hostname.endsWith(".github.io")&&parts.length?location.hostname.split(".")[0]+"/"+parts[0]:"";
@@ -809,7 +809,7 @@ async function ghApi(method,body){
     body:body?JSON.stringify(body):undefined});
   if(!r.ok){
     let m=""; try{ m=(await r.json()).message||""; }catch(e){}
-    const hint=r.status===401?"Jeton invalide ou expiré."
+    const hint=r.status===401?"Jeton invalide ou expiré : renouvelez-le sur GitHub (« Regenerate token ») puis collez le nouveau dans le champ ci-dessus."
       :r.status===403?"Le jeton n'a pas le droit d'écrire (permission « Contents : Read and write ») ou la limite d'appels est atteinte."
       :r.status===404?"Dépôt ou fichier introuvable : vérifiez « propriétaire/nom » et que le jeton a accès à ce dépôt."
       :(r.status===409||r.status===422)?"Le fichier a changé entre-temps : réessayez."
