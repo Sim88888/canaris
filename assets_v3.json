@@ -251,6 +251,14 @@
       "class": "SILVER_MINERS",
       "category": "OR_SEC",
       "us": true
+    },
+    {
+      "id": "ETH",
+      "ticker": "ETH-USD",
+      "name": "Ethereum USD Cours",
+      "currency": "USD",
+      "class": "BTC",
+      "category": "BTC"
     }
   ],
   "classes": {
