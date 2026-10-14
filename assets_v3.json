@@ -72,7 +72,7 @@
       "name": "Bitcoin EUR",
       "currency": "EUR",
       "class": "BTC",
-      "category": "BTC"
+      "category": "CRYPTO"
     },
     {
       "id": "IEUS",
@@ -190,6 +190,15 @@
       "category": "MP_SEC"
     },
     {
+      "id": "URA",
+      "ticker": "URA",
+      "name": "Global X Uranium ETF – URA",
+      "currency": "USD",
+      "class": "URANIUM",
+      "us": true,
+      "category": "MP_SEC"
+    },
+    {
       "id": "LIT",
       "ticker": "LIT",
       "name": "Global X Lithium & Battery Tech ETF – LIT",
@@ -253,12 +262,39 @@
       "us": true
     },
     {
+      "id": "PLATINUM",
+      "ticker": "PL=F",
+      "name": "Platine – futures PL=F (USD converti en EUR)",
+      "currency": "USD",
+      "class": "PLATINUM",
+      "category": "OR_SEC",
+      "proxy": true
+    },
+    {
+      "id": "PALLADIUM",
+      "ticker": "PA=F",
+      "name": "Palladium – futures PA=F (USD converti en EUR)",
+      "currency": "USD",
+      "class": "PALLADIUM",
+      "category": "OR_SEC",
+      "proxy": true
+    },
+    {
+      "id": "COPPER",
+      "ticker": "HG=F",
+      "name": "Cuivre – futures HG=F (USD converti en EUR)",
+      "currency": "USD",
+      "class": "COPPER",
+      "category": "MP_SEC",
+      "proxy": true
+    },
+    {
       "id": "ETH",
       "ticker": "ETH-USD",
       "name": "Ethereum USD Cours",
       "currency": "USD",
-      "class": "BTC",
-      "category": "BTC"
+      "class": "ETH",
+      "category": "CRYPTO"
     },
     {
       "id": "BRENT_CRUDE_OIL",
@@ -266,7 +302,7 @@
       "name": "Brent Crude Oil",
       "currency": "USD",
       "class": "OIL",
-      "category": "MP_SEC"
+      "category": "MP"
     }
   ],
   "classes": {
@@ -291,8 +327,12 @@
     "TREASURY": "Obligations US long terme",
     "BERKSHIRE": "Berkshire Hathaway",
     "BTC": "Bitcoin",
+    "ETH": "Ethereum",
     "SILVER": "Argent",
-    "SILVER_MINERS": "Mines d'argent"
+    "SILVER_MINERS": "Mines d'argent",
+    "PLATINUM": "Platine",
+    "PALLADIUM": "Palladium",
+    "COPPER": "Cuivre"
   },
   "categories": {
     "ACT_DEV": {
@@ -323,9 +363,9 @@
       "label": "Obligations",
       "short": "Obligations"
     },
-    "BTC": {
-      "label": "Bitcoin",
-      "short": "Bitcoin"
+    "CRYPTO": {
+      "label": "Cryptomonnaies",
+      "short": "Crypto"
     }
   },
   "canaryBand": 0,
@@ -353,7 +393,7 @@
       "categories": [
         "OR",
         "MP",
-        "BTC"
+        "CRYPTO"
       ],
       "paliers": [
         {
@@ -370,7 +410,8 @@
         }
       ],
       "plafondsParActif": {
-        "BTC": 10
+        "BTC": 10,
+        "ETH": 10
       },
       "plafondTotal": 30
     },
