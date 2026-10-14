@@ -259,6 +259,14 @@
       "currency": "USD",
       "class": "BTC",
       "category": "BTC"
+    },
+    {
+      "id": "BRENT_CRUDE_OIL",
+      "ticker": "BZ=F",
+      "name": "Brent Crude Oil",
+      "currency": "USD",
+      "class": "OIL",
+      "category": "MP_SEC"
     }
   ],
   "classes": {
