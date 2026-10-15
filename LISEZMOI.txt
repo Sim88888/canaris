@@ -28,3 +28,16 @@ CATÉGORIES (assets_v3.json, champ "categories")
 CANARIS
 - calcul dans la devise de cotation (pas de conversion EUR), sur cours de clôture (séance en cours exclue).
 - "canaryBand" (défaut 0) : bande morte pour limiter les bascules vert/rouge près de zéro (ex. 3 = on ne change d'état que si le score lissé dépasse ±3).
+
+RÈGLES DE RÉPARTITION (assets_v3.json, bloc "regles")
+- les parts sont en % du budget d'achat ; les canaris fixent seuls la part investie (100 / 50 / 0 % du versement), le reste est du cash.
+- cœur : meilleur actif BUY de "ACT_DEV" (SP500 / CW8). Paliers de score -> part : >=90 : 70 %, >=80 : 60 %, >=70 : 40 %.
+- compléments : or, matières premières, bitcoin (un actif BUY par catégorie) : >=90 : 15 %, >=80 : 10 %, >=70 : 5 % ; bitcoin 10 % max ; total 30 % max.
+- secondaires (actions, mat. premières et or secondaires) : BUY et score >=80 ; un 2e actif seulement si son score >=90 ; budget max 5 % (principales fortes) / 10 % (moyennes) / 20 % (faibles) ; un seul actif par famille (EM, énergie, mineurs) ; MAGS exclu si le cœur est SP500/CW8.
+- reliquat : reporté sur le cœur s'il est BUY ; sinon réparti entre les actifs retenus dans la limite des plafonds, le reste en cash.
+
+MODULE « GÉRER LES ACTIFS » (fin de page)
+- liste déroulante + bouton Supprimer ; formulaire d'ajout (ticker Yahoo, identifiant, nom, devise, catégorie, classe).
+- chaque modification télécharge un fichier assets_v3.json modifié (nom exact à conserver). Aucun jeton GitHub n'est nécessaire.
+- pour valider : GitHub > votre dépôt > Add file > Upload files > glisser assets_v3.json > Commit changes. La mise à jour des cours démarre seule.
+- plusieurs modifications à la suite s'accumulent : le dernier fichier téléchargé contient tout. « Annuler les modifications en attente » recharge la liste d'origine.

@@ -291,18 +291,19 @@
     {
       "id": "ETH",
       "ticker": "ETH-USD",
-      "name": "Ethereum USD Cours",
+      "name": "Ethereum – ETH-USD (USD converti en EUR)",
       "currency": "USD",
       "class": "ETH",
       "category": "CRYPTO"
     },
     {
-      "id": "BRENT_CRUDE_OIL",
+      "id": "BRENT",
       "ticker": "BZ=F",
-      "name": "Brent Crude Oil",
+      "name": "Pétrole Brent – futures BZ=F (USD converti en EUR)",
       "currency": "USD",
       "class": "OIL",
-      "category": "MP"
+      "category": "MP_SEC",
+      "proxy": true
     }
   ],
   "classes": {
