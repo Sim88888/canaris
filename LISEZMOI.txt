@@ -41,3 +41,15 @@ MODULE « GÉRER LES ACTIFS » (fin de page)
 - chaque modification télécharge un fichier assets_v3.json modifié (nom exact à conserver). Aucun jeton GitHub n'est nécessaire.
 - pour valider : GitHub > votre dépôt > Add file > Upload files > glisser assets_v3.json > Commit changes. La mise à jour des cours démarre seule.
 - plusieurs modifications à la suite s'accumulent : le dernier fichier téléchargé contient tout. « Annuler les modifications en attente » recharge la liste d'origine.
+
+EN CAS DE PROBLÈME DE COURS
+- data.js et data.json sont régénérés par le workflow « Mise à jour des cours » (onglet Actions › Run workflow). Si vous les supprimez, lancez-le une fois : les 2 ans d'historique sont retéléchargés depuis Yahoo, rien n'est perdu.
+- le script s'arrête après environ 9 minutes ou si Yahoo bloque l'adresse du serveur GitHub ; il enregistre alors ce qu'il a obtenu et le passage suivant (5 par jour ouvré) reprend par les actifs manquants.
+- le journal de l'étape « Récupérer les cours » liste les actifs sans cours (« Sans cours pour l'instant »).
+- un nouveau lancement annule le passage encore en cours (plus de file d'attente de passages).
+
+VÉRIFIER QUE LES MISES À JOUR SE FONT
+- un passage vert dans l'onglet Actions ne prouve pas que des cours ont été enregistrés : ouvrez le passage et lisez « Summary » (nombre d'actifs avec cours, actifs manquants, raison d'un arrêt anticipé).
+- la preuve : un commit « Cours du AAAA-MM-JJ HH:MM » (utilisateur cours-bot) apparaît dans le dépôt. Sans commit récent, la page garde d'anciens cours.
+- la page affiche « ⚠ cours anciens » en rouge si les cours ont plus de 4 jours.
+- durée normale d'un passage : 2 à 9 minutes. Un passage de 12 minutes pile signifie que le script a été interrompu par le délai maximal (ancienne version de fetch_data.py).

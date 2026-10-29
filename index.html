@@ -393,7 +393,10 @@ async function refresh(force){
     }
     render(records);
     const ok=records.filter(x=>x.m).length;
-    $("last-update").textContent=DATA_DATE?new Date(DATA_DATE).toLocaleString("fr-FR"):"—";
+    { const lu=$("last-update"), ageH=DATA_DATE?(Date.now()-new Date(DATA_DATE).getTime())/3600000:0, stale=ageH>96;   // plus de 4 jours : week-end et jours fériés exclus
+      lu.textContent=(DATA_DATE?new Date(DATA_DATE).toLocaleString("fr-FR"):"—")+(stale?" ⚠ cours anciens":"");
+      lu.className=stale?"text-rose-400 font-bold":"";
+      lu.title=stale?"Les cours n'ont pas été rafraîchis depuis plus de 4 jours : consultez l'onglet Actions du dépôt GitHub.":""; }
     $("data-status").textContent=`${ok}/${records.length}`;
   }catch(e){
     $("last-update").textContent="ERREUR";
